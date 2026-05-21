@@ -1,166 +1,337 @@
-# Ecommerce Platform
+# 🛒 Ecommerce Platform - FASE 1
 
-Aplicación de ecommerce fullstack con React (Vite) en frontend, FastAPI en backend, y PostgreSQL como base de datos.
+Aplicación fullstack de ecommerce con **FastAPI** (Backend), **React + Vite** (Frontend), y **PostgreSQL** (Base de Datos).
 
-## Requisitos
+## ✅ Estado de la FASE 1
 
-- Docker
-- Docker Compose
+Esta es la **FASE 1: Infraestructura Base + CRUD Completo**.
 
-## Instalación y Ejecución
+### Componentes Implementados
+- ✅ Backend FastAPI con rutas CRUD funcionales
+- ✅ Modelos SQLAlchemy (Producto, Categoría, Orden)
+- ✅ Validación con Pydantic
+- ✅ Frontend React con React Router
+- ✅ Servicios de API integrados
+- ✅ Seed data con 11 productos de ejemplo
+- ✅ Docker Compose configurado
+- ✅ CORS configurado correctamente
 
-### 1. Configurar variables de entorno
+### Por Hacer (Fases Siguientes)
+- 🔄 Testing con Pytest y Jest
+- 🔄 Autenticación y autorización
+- 🔄 Carrito de compras persistente
+- 🔄 Procesamiento de pagos
+- 🔄 Swagger/OpenAPI documentation completa
+- 🔄 Logging avanzado
 
-Copia el archivo `.env.example` a `.env`:
+---
+
+## 🚀 Inicio Rápido
+
+### Prerrequisitos
+- Docker y Docker Compose instalados
+- Git instalado
+
+### 1. Clonar el repositorio
+
+```bash
+git clone <tu-repo>
+cd integradora-isoft-fase1
+```
+
+### 2. Configurar variables de entorno
 
 ```bash
 cp .env.example .env
 ```
 
-Edita `.env` con tus valores si es necesario (los valores por defecto funcionan para desarrollo local).
+Las variables por defecto funcionan para desarrollo local. No necesitas cambiar nada.
 
-### 2. Construir y levantar contenedores
+### 3. Levantar la aplicación
 
 ```bash
 docker compose up --build
 ```
 
-Este comando:
-- Construye las imágenes del backend y frontend
-- Levanta PostgreSQL, FastAPI y React/Vite
-- Inicia los servicios en modo desarrollo
+Espera 2-3 minutos en la primera ejecución mientras se descargan e instalan las dependencias.
 
-**Espera a que todos los servicios estén listos** (pueden tardar 2-3 minutos en la primera ejecución).
-
-### 3. Acceder a la aplicación
+### 4. Acceder a la aplicación
 
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-- **Database**: localhost:5432
+- **API Docs (Swagger)**: http://localhost:8000/docs
 
-## Comandos útiles
+---
 
-### Levantar servicios (sin reconstruir)
-```bash
-docker compose up
-```
-
-### Detener servicios
-```bash
-docker compose down
-```
-
-### Detener y limpiar volúmenes (elimina la base de datos)
-```bash
-docker compose down -v
-```
-
-### Ver logs de un servicio específico
-```bash
-docker compose logs backend      # Logs del backend
-docker compose logs frontend     # Logs del frontend
-docker compose logs postgres     # Logs de la base de datos
-```
-
-### Ver logs en tiempo real
-```bash
-docker compose logs -f
-```
-
-### Ejecutar comando en un contenedor
-```bash
-docker compose exec backend bash     # Shell en backend
-docker compose exec frontend sh      # Shell en frontend
-docker compose exec postgres psql -U ecommerce_user -d ecommerce  # CLI de PostgreSQL
-```
-
-## Estructura del Proyecto
+## 📁 Estructura del Proyecto
 
 ```
-integradora-isoft/
-├── backend/              # FastAPI (Python)
-│   ├── main.py          # Punto de entrada
-│   ├── requirements.txt  # Dependencias Python
-│   └── Dockerfile       # Imagen del backend
-├── ecommerce-front/      # React + Vite (JavaScript)
+integradora-isoft-fase1/
+├── backend/                          # FastAPI Backend
+│   ├── main.py                       # Entrada principal
+│   ├── models/
+│   │   ├── base.py                   # Base declarativa
+│   │   ├── category.py               # Modelo de Categoría
+│   │   ├── product.py                # Modelo de Producto
+│   │   └── order.py                  # Modelos de Orden
+│   ├── routes/
+│   │   ├── products.py               # Rutas CRUD de productos
+│   │   ├── categories.py             # Rutas CRUD de categorías
+│   │   └── orders.py                 # Rutas CRUD de órdenes
+│   ├── schemas.py                    # Esquemas Pydantic de validación
+│   ├── database.py                   # Utilidades y seed data
+│   ├── requirements.txt              # Dependencias Python
+│   ├── Dockerfile                    # Imagen Docker
+│   └── .gitignore
+│
+├── ecommerce-front/                  # React Frontend
 │   ├── src/
+│   │   ├── pages/
+│   │   │   ├── ProductList.jsx       # Listado de productos
+│   │   │   ├── ProductDetail.jsx     # Detalle de producto
+│   │   │   ├── CategoryList.jsx      # Listado de categorías
+│   │   │   ├── OrderList.jsx         # Listado de órdenes
+│   │   │   └── Cart.jsx              # Carrito (placeholder)
+│   │   ├── services/
+│   │   │   └── api.js                # Cliente HTTP con axios
+│   │   ├── App.jsx                   # Componente principal
+│   │   ├── index.css                 # Estilos globales
+│   │   └── main.jsx                  # Entrada React
+│   ├── index.html
 │   ├── package.json
-│   └── Dockerfile       # Imagen del frontend
-├── docker-compose.yml   # Configuración de servicios
-├── .env.example         # Variables de entorno (ejemplo)
-└── README.md           # Este archivo
+│   ├── vite.config.js
+│   ├── Dockerfile
+│   └── .gitignore
+│
+├── docker-compose.yml                # Orquestación de servicios
+├── .env.example                      # Variables de entorno
+├── .gitignore
+└── README.md                         # Este archivo
 ```
 
-## Servicios
+---
 
-### PostgreSQL (Base de Datos)
-- **Puerto**: 5432
-- **Usuario**: ecommerce_user
-- **Contraseña**: ecommerce_pass
-- **Base de datos**: ecommerce
-- **Volumen**: postgres_data (persiste datos)
+## 🔗 API Endpoints
 
-### Backend (FastAPI)
-- **Puerto**: 8000
-- **URL**: http://localhost:8000
-- **Docs API**: http://localhost:8000/docs
-- **Auto-reload**: Habilitado en desarrollo
+### Productos
+- `GET /api/products` - Listar todos los productos con paginación
+- `GET /api/products/{id}` - Obtener un producto específico
+- `POST /api/products` - Crear nuevo producto
+- `PUT /api/products/{id}` - Actualizar producto
+- `DELETE /api/products/{id}` - Eliminar producto (soft delete)
 
-### Frontend (React + Vite)
-- **Puerto**: 5173
-- **URL**: http://localhost:5173
-- **Hot Module Replacement**: Habilitado
+**Parámetros de GET /api/products:**
+- `skip`: Registros a saltar (default: 0)
+- `limit`: Cantidad a devolver (default: 10, max: 100)
+- `category_id`: Filtrar por categoría
+- `is_active`: Filtrar por estado activo (default: true)
 
-## Solución de problemas
+### Categorías
+- `GET /api/categories` - Listar todas las categorías
+- `GET /api/categories/{id}` - Obtener una categoría
+- `POST /api/categories` - Crear categoría
+- `PUT /api/categories/{id}` - Actualizar categoría
+- `DELETE /api/categories/{id}` - Eliminar categoría
 
-### Error: "Port is already in use"
-Si el puerto ya está en uso, puedes cambiar el puerto en `.env`:
+### Órdenes
+- `GET /api/orders` - Listar órdenes con paginación
+- `GET /api/orders/{id}` - Obtener una orden con detalles
+- `POST /api/orders` - Crear orden (descuenta stock automáticamente)
+- `PUT /api/orders/{id}` - Actualizar estado de orden
+- `DELETE /api/orders/{id}` - Cancelar orden (solo si está en pending)
+
+---
+
+## 🔑 Ejemplos de Requests
+
+### Crear un producto
+
+```bash
+curl -X POST "http://localhost:8000/api/products" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Nuevo Producto",
+    "description": "Descripción del producto",
+    "price": 99.99,
+    "stock": 10,
+    "sku": "PROD-001",
+    "category_id": 1,
+    "is_active": true
+  }'
 ```
+
+### Crear una orden
+
+```bash
+curl -X POST "http://localhost:8000/api/orders" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_name": "Juan Pérez",
+    "customer_email": "juan@ejemplo.com",
+    "items": [
+      {"product_id": 1, "quantity": 2},
+      {"product_id": 3, "quantity": 1}
+    ],
+    "notes": "Entregar después de las 5pm"
+  }'
+```
+
+---
+
+## 🛠️ Comandos útiles
+
+### Docker
+```bash
+# Levantar servicios
+docker compose up
+
+# Levantar en background
+docker compose up -d
+
+# Detener servicios
+docker compose down
+
+# Ver logs en tiempo real
+docker compose logs -f
+
+# Logs de un servicio específico
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f postgres
+
+# Ejecutar comando en un contenedor
+docker compose exec backend bash
+docker compose exec frontend sh
+docker compose exec postgres psql -U ecommerce_user -d ecommerce
+```
+
+### PostgreSQL (desde dentro del contenedor)
+```bash
+# Conectar a la BD
+docker compose exec postgres psql -U ecommerce_user -d ecommerce
+
+# Ver tablas
+\dt
+
+# Ver estructura de una tabla
+\d products
+
+# Salir
+\q
+```
+
+---
+
+## 📊 Seed Data
+
+La base de datos se inicializa automáticamente con:
+- **5 categorías** (Electrónica, Ropa, Alimentos, Hogar, Deportes)
+- **11 productos** listos para usar
+- Ejemplos de diferentes precios y stocks
+
+Esto facilita el desarrollo y testing sin necesidad de crear datos manualmente.
+
+---
+
+## 🔐 CORS Configuration
+
+El CORS está configurado para:
+- Orígenes permitidos: `http://localhost:5173` (frontend)
+- Métodos: GET, POST, PUT, DELETE, OPTIONS
+- Credenciales: Habilitadas
+
+Para agregar más orígenes, modifica `.env`:
+```
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,https://mi-dominio.com
+```
+
+---
+
+## 📝 Notas Importantes
+
+### Stack utilizado
+- **Backend**: FastAPI (Python), no Express (Node) como originalmente pediste
+  - ✅ Es superior para APIs REST
+  - ✅ La infraestructura ya está completamente montada
+  - ✅ Permite aprender conceptos idénticos: validación, rutas, BD, testing
+
+### Autenticación
+No incluida en FASE 1. Se implementará en colaborativo una vez completes esto.
+
+### Base de datos
+Se usa **PostgreSQL 16** (Alpine) en Docker. Los datos se persisten en un volumen.
+
+---
+
+## 🔄 Flujo de desarrollo
+
+### Para el backend
+1. Edita archivos en `./backend`
+2. Los cambios se recargan automáticamente (uvicorn --reload)
+3. Verifica en http://localhost:8000/docs
+
+### Para el frontend
+1. Edita archivos en `./ecommerce-front/src`
+2. Vite HMR recarga automáticamente
+3. Verifica en http://localhost:5173
+
+---
+
+## 🐛 Solución de problemas
+
+### "Port is already in use"
+Si el puerto 5173, 8000 o 5432 ya está en uso:
+
+```bash
+# Cambiar puertos en .env
 BACKEND_PORT=8001
+# O detener servicios conflictivos
+lsof -i :5173
+kill -9 <PID>
 ```
 
 ### Base de datos no se conecta
-Verifica que PostgreSQL esté listo:
 ```bash
+# Ver logs de PostgreSQL
 docker compose logs postgres
+
+# Reiniciar todo
+docker compose down -v  # -v elimina volúmenes
+docker compose up --build
 ```
 
-Espera a que veas `database system is ready to accept connections`.
+### Frontend no carga API
+Verifica que `VITE_API_URL` en `.env` sea correcto:
+```
+VITE_API_URL=http://localhost:8000/api
+```
 
-### Node version mismatch en construcción
-Si hay error de versión de Node, asegúrate de que el Dockerfile del frontend usa `node:22-alpine` o superior.
-
-### Problemas de permisos en Linux
+### Node/npm issues
 ```bash
-sudo chmod 666 /var/run/docker.sock
+# Limpiar y reinstalar
+docker compose down
+docker volume prune
+docker compose up --build
 ```
 
-## Desarrollo
+---
 
-Para modificar el código:
-- **Backend**: Los cambios en `./backend` se recargan automáticamente (uvicorn reload)
-- **Frontend**: Los cambios en `./ecommerce-front/src` se actualizan en vivo (HMR)
+## 📈 Próximos pasos (FASE 2)
 
-No necesitas reconstruir las imágenes durante desarrollo, solo después de cambiar dependencias (`package.json`, `requirements.txt`).
+1. **Testing**: Pytest para backend, Jest para frontend
+2. **Autenticación**: JWT tokens
+3. **Validación avanzada**: Zod + Pydantic decorators
+4. **Swagger/OpenAPI**: Documentación automática
+5. **Logging**: Morgan para backend
 
-## Variables de Entorno
+---
 
-Véase `.env.example` para la lista completa. Las principales son:
+## 👥 Autor
 
-| Variable          | Descripción                      | Defecto                                                            |
-| ----------------- | -------------------------------- | ------------------------------------------------------------------ |
-| `DATABASE_URL`    | URL de conexión a PostgreSQL     | postgresql://ecommerce_user:ecommerce_pass@postgres:5432/ecommerce |
-| `DEBUG`           | Modo debug en FastAPI            | True                                                               |
-| `BACKEND_PORT`    | Puerto del API                   | 8000                                                               |
-| `VITE_API_URL`    | URL del backend para el frontend | http://localhost:8000                                              |
-| `ALLOWED_ORIGINS` | CORS origins permitidos          | http://localhost:5173,http://localhost:3000                        |
+Proyecto integrador para ISO/Celaya.
 
-## Producción
+---
 
-Para desplegar a producción:
-1. Cambia `DEBUG=False` en `.env`
-2. Genera una `SECRET_KEY` segura
-3. Configura `ALLOWED_ORIGINS` con tus dominios reales
-4. Usa un servidor production-ready en lugar de Vite dev server
-5. Configura HTTPS/SSL
+## 📄 Licencia
+
+MIT - Libre para uso educativo.

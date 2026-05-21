@@ -5,20 +5,20 @@ services:
     image: postgres:16-alpine
     container_name: ecommerce-db
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-ecommerce}
+      POSTGRES_USER: ${DB_USER:-ecommerce_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ecommerce_pass}
     ports:
-      - "${DB_PORT}:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ecommerce_user}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    env_file:
-      - .env
+    networks:
+      - ecommerce-network
 
   backend:
     build:
@@ -26,27 +26,26 @@ services:
       dockerfile: Dockerfile
     container_name: ecommerce-api
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DEBUG: ${DEBUG}
-      API_TITLE: ${API_TITLE}
-      API_VERSION: ${API_VERSION}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      DATABASE_URL: postgresql://${DB_USER:-ecommerce_user}:${DB_PASSWORD:-ecommerce_pass}@postgres:5432/${DB_NAME:-ecommerce}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
     ports:
-      - "${BACKEND_PORT}:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    env_file:
-      - .env
+    networks:
+      - ecommerce-network
 
   frontend:
     build:
       context: ./ecommerce-front
       dockerfile: Dockerfile
     container_name: ecommerce-web
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api}
+      VITE_APP_NAME: ${VITE_APP_NAME:-Ecommerce}
     ports:
       - "5173:5173"
     depends_on:
@@ -54,11 +53,12 @@ services:
     volumes:
       - ./ecommerce-front:/app
       - /app/node_modules
-    environment:
-      VITE_API_URL: ${VITE_API_URL}
-      VITE_APP_NAME: ${VITE_APP_NAME}
-    env_file:
-      - .env
+    networks:
+      - ecommerce-network
 
 volumes:
   postgres_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
