@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { productService } from '../services/api'
+import { useCart } from '../context/CartContext'
 
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { addItem } = useCart()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     loadProduct()
@@ -19,7 +22,7 @@ export default function ProductDetail() {
     setError(null)
     try {
       const response = await productService.get(id)
-      setProduct(response.data)
+      setProduct(response.data.data)
     } catch (err) {
       setError('Error al cargar el producto: ' + err.message)
     } finally {
@@ -28,8 +31,19 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    alert(`✓ Se agregaron ${quantity} unidades de "${product.name}" al carrito`)
-    // Aquí iría la lógica real del carrito
+    if (!product) return
+
+    addItem({
+      product_id: product.id,
+      name: product.name,
+      price: product.price,
+      sku: product.sku,
+      stock: product.stock,
+      category: product.category,
+      quantity,
+    })
+
+    setMessage(`✓ Se agregaron ${quantity} unidades de "${product.name}" al carrito.`)
   }
 
   if (loading) {
@@ -73,6 +87,11 @@ export default function ProductDetail() {
 
         <div>
           <h1>{product.name}</h1>
+          {message && (
+            <div className={message.startsWith('✓') ? 'success' : 'error'} style={{ marginBottom: '1rem' }}>
+              {message}
+            </div>
+          )}
           <p style={{ color: '#666', marginBottom: '1rem' }}>SKU: {product.sku}</p>
 
           <div className="card" style={{ marginBottom: '1rem' }}>
@@ -91,14 +110,10 @@ export default function ProductDetail() {
               </span>
             </p>
 
-            <p>
-              <strong>Categoría:</strong> {product.category.name}
-            </p>
-
-            {product.is_active ? (
-              <span className="badge badge-success">Activo</span>
-            ) : (
-              <span className="badge badge-danger">Inactivo</span>
+            {product.category && (
+              <p>
+                <strong>Categoría:</strong> {product.category}
+              </p>
             )}
           </div>
 

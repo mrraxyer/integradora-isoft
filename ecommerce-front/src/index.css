@@ -330,8 +330,97 @@ body {
   color: var(--danger-color);
 }
 
+/* ── Nav auth section ───────────────────────────────────────────── */
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.nav-user {
+  color: #ecf0f1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Auth pages (Login / Register) ─────────────────────────────── */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth-error {
+  background-color: #fee;
+  color: var(--danger-color);
+  border-left: 4px solid var(--danger-color);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+}
+
+.auth-submit {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.auth-link {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.input-error {
+  border-color: var(--danger-color) !important;
+}
+
+.field-error {
+  display: block;
+  color: var(--danger-color);
+  font-size: 0.82rem;
+  margin-top: 0.3rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .nav-container {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
   .nav-menu {
     gap: 1rem;
   }
@@ -339,6 +428,10 @@ body {
   .nav-link {
     padding: 0.3rem 0.6rem;
     font-size: 0.9rem;
+  }
+
+  .nav-auth {
+    gap: 0.4rem;
   }
 
   .grid {
