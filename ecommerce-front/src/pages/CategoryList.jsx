@@ -29,23 +29,21 @@ export default function CategoryList() {
         await categoryService.delete(id)
         loadCategories()
       } catch (err) {
-        alert('Error: ' + err.response?.data?.detail || err.message)
+        alert('Error: ' + (err.response?.data?.detail || err.message))
       }
     }
   }
 
-  if (loading) {
-    return <div className="loading">Cargando categorías...</div>
-  }
+  if (loading) return <div className="loading">Cargando categorías...</div>
 
   return (
     <div>
-      <h1>📁 Categorías</h1>
+      <h1>Categorías</h1>
 
       {error && <div className="error">{error}</div>}
 
       {categories.length === 0 ? (
-        <div className="loading">No hay categorías</div>
+        <div className="empty-state">No hay categorías</div>
       ) : (
         <div className="table-responsive">
           <table className="table">
@@ -59,9 +57,7 @@ export default function CategoryList() {
             <tbody>
               {categories.map((cat) => (
                 <tr key={cat.id}>
-                  <td>
-                    <strong>{cat.name}</strong>
-                  </td>
+                  <td><strong>{cat.name}</strong></td>
                   <td>{cat.description}</td>
                   <td>
                     <button

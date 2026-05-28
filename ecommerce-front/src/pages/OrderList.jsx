@@ -1,6 +1,22 @@
 import { useState, useEffect } from 'react'
 import { orderService } from '../services/api'
 
+const STATUS_LABELS = {
+  pending: 'Pendiente',
+  processing: 'Procesando',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado',
+}
+
+const STATUS_BADGE = {
+  pending: 'badge-warning',
+  processing: 'badge-warning',
+  shipped: 'badge-success',
+  delivered: 'badge-success',
+  cancelled: 'badge-danger',
+}
+
 export default function OrderList() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,7 +31,7 @@ export default function OrderList() {
     setLoading(true)
     setError(null)
     try {
-      const response = await orderService.list(0, 10, statusFilter)
+      const response = await orderService.list(0, 50, statusFilter)
       setOrders(response.data)
     } catch (err) {
       setError('Error al cargar órdenes: ' + err.message)
@@ -24,49 +40,26 @@ export default function OrderList() {
     }
   }
 
-  const getStatusBadge = (status) => {
-    const colors = {
-      pending: 'badge-warning',
-      processing: 'badge-warning',
-      shipped: 'badge-success',
-      delivered: 'badge-success',
-      cancelled: 'badge-danger',
-    }
-    const labels = {
-      pending: 'Pendiente',
-      processing: 'Procesando',
-      shipped: 'Enviado',
-      delivered: 'Entregado',
-      cancelled: 'Cancelado',
-    }
-    return <span className={`badge ${colors[status]}`}>{labels[status]}</span>
-  }
-
-  if (loading) {
-    return <div className="loading">Cargando órdenes...</div>
-  }
+  if (loading) return <div className="loading">Cargando órdenes...</div>
 
   return (
     <div>
-      <h1>📦 Órdenes</h1>
+      <h1>Órdenes</h1>
 
-      <div style={{ marginBottom: '2rem' }}>
-        <h3>Filtrar por estado:</h3>
+      <div className="filter-bar">
         <button
-          className={`btn ${statusFilter === null ? 'btn-primary' : ''}`}
+          className={`btn btn-filter ${statusFilter === null ? 'active' : ''}`}
           onClick={() => setStatusFilter(null)}
-          style={{ marginRight: '0.5rem' }}
         >
           Todas
         </button>
-        {['pending', 'processing', 'shipped', 'delivered', 'cancelled'].map((status) => (
+        {Object.keys(STATUS_LABELS).map((status) => (
           <button
             key={status}
-            className={`btn ${statusFilter === status ? 'btn-primary' : ''}`}
+            className={`btn btn-filter ${statusFilter === status ? 'active' : ''}`}
             onClick={() => setStatusFilter(status)}
-            style={{ marginRight: '0.5rem' }}
           >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {STATUS_LABELS[status]}
           </button>
         ))}
       </div>
@@ -74,7 +67,7 @@ export default function OrderList() {
       {error && <div className="error">{error}</div>}
 
       {orders.length === 0 ? (
-        <div className="loading">No hay órdenes disponibles</div>
+        <div className="empty-state">No hay órdenes disponibles</div>
       ) : (
         <div className="table-responsive">
           <table className="table">
@@ -91,14 +84,16 @@ export default function OrderList() {
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td>
-                    <strong>#{order.id}</strong>
-                  </td>
+                  <td><strong>#{order.id}</strong></td>
                   <td>{order.customer_name}</td>
                   <td>{order.customer_email}</td>
-                  <td>${order.total_amount.toFixed(2)}</td>
-                  <td>{getStatusBadge(order.status)}</td>
-                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td><strong>${order.total_amount.toFixed(2)}</strong></td>
+                  <td>
+                    <span className={`badge ${STATUS_BADGE[order.status] || 'badge-warning'}`}>
+                      {STATUS_LABELS[order.status] || order.status}
+                    </span>
+                  </td>
+                  <td>{new Date(order.created_at).toLocaleDateString('es-MX')}</td>
                 </tr>
               ))}
             </tbody>

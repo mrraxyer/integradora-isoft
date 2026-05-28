@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { productService } from '../services/api'
+import { useCart } from '../context/CartContext'
 
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { addItem } = useCart()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     loadProduct()
@@ -28,13 +31,20 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    alert(`✓ Se agregaron ${quantity} unidades de "${product.name}" al carrito`)
-    // Aquí iría la lógica real del carrito
+    if (!product) return
+    addItem({
+      product_id: product.id,
+      name: product.name,
+      price: product.price,
+      sku: product.sku,
+      stock: product.stock,
+      category: product.category?.name,
+      quantity,
+    })
+    setMessage(`Se agregaron ${quantity} unidad(es) de "${product.name}" al carrito.`)
   }
 
-  if (loading) {
-    return <div className="loading">Cargando producto...</div>
-  }
+  if (loading) return <div className="loading">Cargando producto...</div>
 
   if (error) {
     return (
@@ -60,50 +70,43 @@ export default function ProductDetail() {
 
   return (
     <div>
-      <button className="btn btn-secondary" onClick={() => navigate('/')}>
-        ← Volver a productos
+      <button className="btn btn-outline" onClick={() => navigate('/')}>
+        Volver a productos
       </button>
 
-      <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-        <div>
-          <div className="card-image" style={{ height: '300px', fontSize: '5rem' }}>
-            📦
-          </div>
+      <div className="product-detail">
+        <div className="product-detail-image">
+          <span className="product-icon-lg">{product.category?.name?.[0] ?? 'P'}</span>
         </div>
 
-        <div>
-          <h1>{product.name}</h1>
-          <p style={{ color: '#666', marginBottom: '1rem' }}>SKU: {product.sku}</p>
+        <div className="product-detail-info">
+          <p className="card-category">{product.category?.name}</p>
+          <h1 style={{ borderBottom: 'none', marginBottom: '0.25rem' }}>{product.name}</h1>
+          <p className="text-muted" style={{ marginBottom: '1.5rem' }}>SKU: {product.sku}</p>
 
-          <div className="card" style={{ marginBottom: '1rem' }}>
-            <h3>Detalles</h3>
-            <p>{product.description}</p>
+          {message && (
+            <div className="success" style={{ marginBottom: '1rem' }}>{message}</div>
+          )}
 
-            <hr style={{ margin: '1rem 0' }} />
-
-            <p style={{ fontSize: '1.2rem' }}>
-              <strong>Precio:</strong> <span style={{ color: '#27ae60', fontSize: '1.5rem' }}>${product.price.toFixed(2)}</span>
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
+            <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+              {product.description}
             </p>
-            <p>
-              <strong>Stock:</strong>{' '}
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '1rem 0' }} />
+            <p className="detail-price">${product.price.toFixed(2)}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <strong>Stock:</strong>
               <span className={`badge ${product.stock > 0 ? 'badge-success' : 'badge-danger'}`}>
                 {product.stock > 0 ? `${product.stock} disponibles` : 'Agotado'}
               </span>
-            </p>
-
-            <p>
-              <strong>Categoría:</strong> {product.category.name}
-            </p>
-
-            {product.is_active ? (
-              <span className="badge badge-success">Activo</span>
-            ) : (
-              <span className="badge badge-danger">Inactivo</span>
+            </div>
+            {product.category?.name && (
+              <p><strong>Categoría:</strong> {product.category.name}</p>
             )}
           </div>
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label className="form-label">Cantidad:</label>
+            <label className="form-label">Cantidad</label>
             <input
               type="number"
               min="1"
@@ -111,17 +114,18 @@ export default function ProductDetail() {
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
               className="form-input"
+              style={{ maxWidth: '100px' }}
               disabled={product.stock === 0}
             />
           </div>
 
           <button
-            className="btn btn-secondary"
+            className="btn btn-success"
             onClick={handleAddToCart}
             disabled={product.stock === 0}
-            style={{ fontSize: '1.1rem', padding: '0.8rem 1.5rem' }}
+            style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
           >
-            🛒 Agregar al carrito
+            Agregar al carrito
           </button>
         </div>
       </div>
