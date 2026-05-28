@@ -5,6 +5,13 @@ const AuthContext = createContext(null)
 const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'auth_user'
 
+function parseApiError(err, fallback) {
+  const detail = err.response?.data?.detail
+  if (!detail) return fallback
+  if (Array.isArray(detail)) return detail.map((d) => d.msg).join('; ')
+  return String(detail)
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -18,7 +25,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // Attach token to every axios request while authenticated
   useEffect(() => {
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
@@ -49,7 +55,7 @@ export function AuthProvider({ children }) {
       saveSession(res.data.token, res.data.user)
       return { ok: true }
     } catch (err) {
-      const message = err.response?.data?.error || 'Error al iniciar sesión'
+      const message = parseApiError(err, 'Error al iniciar sesión')
       setError(message)
       return { ok: false, error: message }
     } finally {
@@ -65,7 +71,7 @@ export function AuthProvider({ children }) {
       saveSession(res.data.token, res.data.user)
       return { ok: true }
     } catch (err) {
-      const message = err.response?.data?.error || 'Error al registrarse'
+      const message = parseApiError(err, 'Error al registrarse')
       setError(message)
       return { ok: false, error: message }
     } finally {
@@ -73,9 +79,7 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const logout = useCallback(() => {
-    clearSession()
-  }, [])
+  const logout = useCallback(() => clearSession(), [])
 
   const isAuthenticated = Boolean(token && user)
 

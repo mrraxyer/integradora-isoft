@@ -25,7 +25,7 @@ function NavBar() {
     <nav className="navbar">
       <div className="nav-container">
         <Link to="/" className="nav-logo">
-          🛒 Ecommerce
+          iSoft Store
         </Link>
         <ul className="nav-menu">
           <li className="nav-item">
@@ -41,7 +41,7 @@ function NavBar() {
               </li>
               <li className="nav-item">
                 <Link to="/carrito" className="nav-link">
-                  🛍️ Carrito {totalItems > 0 ? `(${totalItems})` : ''}
+                  Carrito{totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
                 </Link>
               </li>
             </>
@@ -50,14 +50,14 @@ function NavBar() {
         <div className="nav-auth">
           {isAuthenticated ? (
             <>
-              <span className="nav-user">👤 {user?.name}</span>
+              <span className="nav-user">{user?.name}</span>
               <button className="btn btn-danger btn-small" onClick={handleLogout}>
                 Cerrar sesión
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="btn btn-secondary btn-small">Ingresar</Link>
+              <Link to="/login" className="btn btn-outline-light btn-small">Ingresar</Link>
               <Link to="/registro" className="btn btn-primary btn-small">Registro</Link>
             </>
           )}
@@ -71,7 +71,6 @@ function AppContent() {
   return (
     <div className="app">
       <NavBar />
-
       <main className="main-content">
         <Routes>
           <Route path="/" element={<ProductList />} />
@@ -97,9 +96,8 @@ function AppContent() {
           />
         </Routes>
       </main>
-
       <footer className="footer">
-        <p>&copy; 2024 Ecommerce Platform. Todos los derechos reservados.</p>
+        <p>&copy; 2024 iSoft Store. Todos los derechos reservados.</p>
       </footer>
     </div>
   )
