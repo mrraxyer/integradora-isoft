@@ -28,6 +28,7 @@ async function seed() {
         stock: 15,
         sku: 'DELL-XPS-13',
         categoryId: electronics[0].id,
+        image_url: 'https://www.svgrepo.com/show/535468/laptop.svg',
       },
       {
         name: 'Monitor 4K 27"',
@@ -36,6 +37,7 @@ async function seed() {
         stock: 8,
         sku: 'MON-4K-27',
         categoryId: electronics[0].id,
+        image_url: 'https://www.svgrepo.com/show/533130/monitor.svg',
       },
       {
         name: 'Teclado Mecánico RGB',
@@ -44,6 +46,7 @@ async function seed() {
         stock: 25,
         sku: 'KEY-MECH-RGB',
         categoryId: electronics[0].id,
+        image_url: 'https://www.svgrepo.com/show/535457/keyboard.svg',
       },
       {
         name: 'Camiseta Básica',
@@ -52,6 +55,7 @@ async function seed() {
         stock: 50,
         sku: 'SHIRT-BASIC',
         categoryId: clothes[0].id,
+        image_url: 'https://www.svgrepo.com/show/389410/shirt.svg',
       },
       {
         name: 'Jeans Azul',
@@ -60,6 +64,7 @@ async function seed() {
         stock: 30,
         sku: 'JEAN-BLUE',
         categoryId: clothes[0].id,
+        image_url: 'https://www.svgrepo.com/show/482657/jeans-3.svg',
       },
       {
         name: 'JavaScript: The Good Parts',
@@ -68,6 +73,7 @@ async function seed() {
         stock: 12,
         sku: 'BOOK-JS-GOOD',
         categoryId: books[0].id,
+        image_url: 'https://www.svgrepo.com/show/533406/book.svg',
       },
     ];
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { LogIn, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -47,7 +48,7 @@ export default function Login() {
       <div className="auth-card">
         <h2 className="auth-title">Iniciar sesión</h2>
 
-        {serverError && <div className="auth-error">{serverError}</div>}
+        {serverError && <div className="auth-error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{serverError}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
@@ -85,6 +86,7 @@ export default function Login() {
           </div>
 
           <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+            <LogIn size={18} />
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>

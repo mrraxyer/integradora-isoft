@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { UserPlus, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function Register() {
@@ -49,7 +50,7 @@ export default function Register() {
       <div className="auth-card">
         <h2 className="auth-title">Crear cuenta</h2>
 
-        {serverError && <div className="auth-error">{serverError}</div>}
+        {serverError && <div className="auth-error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{serverError}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
@@ -121,6 +122,7 @@ export default function Register() {
           </div>
 
           <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+            <UserPlus size={18} />
             {loading ? 'Creando cuenta...' : 'Registrarse'}
           </button>
         </form>

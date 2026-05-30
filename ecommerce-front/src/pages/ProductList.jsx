@@ -1,9 +1,27 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Trash2, ShoppingCart, Eye, AlertCircle, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package } from 'lucide-react'
 import { productService } from '../services/api'
 import { useCart } from '../context/CartContext'
 
 const LIMIT = 20
+
+const getCategoryIcon = (categoryName) => {
+  const iconMap = {
+    'electrónica': Smartphone,
+    'ropa': Shirt,
+    'alimentos': UtensilsCrossed,
+    'hogar': Home,
+    'deportes': Trophy,
+    'default': Package,
+  }
+  return iconMap[categoryName?.toLowerCase()] || iconMap.default
+}
+
+const CategoryIcon = ({ categoryName, size = 64, className = '' }) => {
+  const Icon = getCategoryIcon(categoryName)
+  return <Icon size={size} className={className} strokeWidth={1.5} />
+}
 
 export default function ProductList() {
   const { addItem } = useCart()
@@ -69,18 +87,22 @@ export default function ProductList() {
         >
           Todas
         </button>
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            className={`btn btn-filter ${selectedCategoryId === cat.id ? 'active' : ''}`}
-            onClick={() => { setSelectedCategoryId(cat.id); setPage(1) }}
-          >
-            {cat.name}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const Icon = getCategoryIcon(cat.name)
+          return (
+            <button
+              key={cat.id}
+              className={`btn btn-filter ${selectedCategoryId === cat.id ? 'active' : ''}`}
+              onClick={() => { setSelectedCategoryId(cat.id); setPage(1) }}
+            >
+              <Icon size={16} />
+              {cat.name}
+            </button>
+          )
+        })}
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{error}</div>}
 
       {products.length === 0 ? (
         <div className="empty-state">No hay productos disponibles</div>
@@ -89,7 +111,13 @@ export default function ProductList() {
           {products.map((product) => (
             <div key={product.id} className="card">
               <div className="card-image">
-                <span className="product-icon">{product.category?.name?.[0] ?? 'P'}</span>
+                {product.image_url ? (
+                  <img src={product.image_url} alt={product.name} className="card-image-img" />
+                ) : (
+                  <div className="card-image-icon">
+                    <CategoryIcon categoryName={product.category?.name} size={80} />
+                  </div>
+                )}
               </div>
               <div className="card-body">
                 <p className="card-category">{product.category?.name}</p>
@@ -104,7 +132,8 @@ export default function ProductList() {
                 </div>
                 <div className="card-actions">
                   <Link to={`/producto/${product.id}`} className="btn btn-primary btn-small">
-                    Ver detalle
+                    <Eye size={16} />
+                    Ver
                   </Link>
                   <button
                     className="btn btn-success btn-small"
@@ -121,13 +150,14 @@ export default function ProductList() {
                       })
                     }
                   >
+                    <ShoppingCart size={16} />
                     Agregar
                   </button>
                   <button
                     className="btn btn-danger btn-small"
                     onClick={() => handleDelete(product.id)}
                   >
-                    Eliminar
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
@@ -143,7 +173,7 @@ export default function ProductList() {
             onClick={() => setPage(page > 1 ? page - 1 : 1)}
             disabled={page === 1}
           >
-            Anterior
+            ← Anterior
           </button>
           <span className="pagination-info">Página {page}</span>
           <button
@@ -151,7 +181,7 @@ export default function ProductList() {
             onClick={() => setPage(page + 1)}
             disabled={!hasMore}
           >
-            Siguiente
+            Siguiente →
           </button>
         </div>
       )}

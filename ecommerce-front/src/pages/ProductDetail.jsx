@@ -1,7 +1,25 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, ShoppingCart, AlertCircle, Check, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package } from 'lucide-react'
 import { productService } from '../services/api'
 import { useCart } from '../context/CartContext'
+
+const getCategoryIcon = (categoryName) => {
+  const iconMap = {
+    'electrónica': Smartphone,
+    'ropa': Shirt,
+    'alimentos': UtensilsCrossed,
+    'hogar': Home,
+    'deportes': Trophy,
+    'default': Package,
+  }
+  return iconMap[categoryName?.toLowerCase()] || iconMap.default
+}
+
+const CategoryIcon = ({ categoryName, size = 128, className = '' }) => {
+  const Icon = getCategoryIcon(categoryName)
+  return <Icon size={size} className={className} strokeWidth={1.5} />
+}
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -49,8 +67,9 @@ export default function ProductDetail() {
   if (error) {
     return (
       <div>
-        <div className="error">{error}</div>
+        <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{error}</div>
         <button className="btn btn-primary" onClick={() => navigate('/')}>
+          <ArrowLeft size={18} />
           Volver a productos
         </button>
       </div>
@@ -60,8 +79,9 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div>
-        <div className="error">Producto no encontrado</div>
+        <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />Producto no encontrado</div>
         <button className="btn btn-primary" onClick={() => navigate('/')}>
+          <ArrowLeft size={18} />
           Volver a productos
         </button>
       </div>
@@ -71,12 +91,19 @@ export default function ProductDetail() {
   return (
     <div>
       <button className="btn btn-outline" onClick={() => navigate('/')}>
-        Volver a productos
+        <ArrowLeft size={18} />
+        Volver
       </button>
 
       <div className="product-detail">
         <div className="product-detail-image">
-          <span className="product-icon-lg">{product.category?.name?.[0] ?? 'P'}</span>
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} className="product-detail-image-img" />
+          ) : (
+            <div className="product-detail-image-icon">
+              <CategoryIcon categoryName={product.category?.name} size={150} />
+            </div>
+          )}
         </div>
 
         <div className="product-detail-info">
@@ -85,7 +112,7 @@ export default function ProductDetail() {
           <p className="text-muted" style={{ marginBottom: '1.5rem' }}>SKU: {product.sku}</p>
 
           {message && (
-            <div className="success" style={{ marginBottom: '1rem' }}>{message}</div>
+            <div className="success" style={{ marginBottom: '1rem' }}><Check size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{message}</div>
           )}
 
           <div className="card" style={{ marginBottom: '1.5rem' }}>
@@ -125,6 +152,7 @@ export default function ProductDetail() {
             disabled={product.stock === 0}
             style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
           >
+            <ShoppingCart size={20} />
             Agregar al carrito
           </button>
         </div>

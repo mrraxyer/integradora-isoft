@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Clock, Loader2, Truck, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { orderService } from '../services/api'
 
 const STATUS_LABELS = {
@@ -7,6 +8,14 @@ const STATUS_LABELS = {
   shipped: 'Enviado',
   delivered: 'Entregado',
   cancelled: 'Cancelado',
+}
+
+const STATUS_ICONS = {
+  pending: Clock,
+  processing: Loader2,
+  shipped: Truck,
+  delivered: CheckCircle,
+  cancelled: XCircle,
 }
 
 const STATUS_BADGE = {
@@ -53,18 +62,22 @@ export default function OrderList() {
         >
           Todas
         </button>
-        {Object.keys(STATUS_LABELS).map((status) => (
-          <button
-            key={status}
-            className={`btn btn-filter ${statusFilter === status ? 'active' : ''}`}
-            onClick={() => setStatusFilter(status)}
-          >
-            {STATUS_LABELS[status]}
-          </button>
-        ))}
+        {Object.keys(STATUS_LABELS).map((status) => {
+          const Icon = STATUS_ICONS[status]
+          return (
+            <button
+              key={status}
+              className={`btn btn-filter ${statusFilter === status ? 'active' : ''}`}
+              onClick={() => setStatusFilter(status)}
+            >
+              <Icon size={16} />
+              {STATUS_LABELS[status]}
+            </button>
+          )
+        })}
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{error}</div>}
 
       {orders.length === 0 ? (
         <div className="empty-state">No hay órdenes disponibles</div>
@@ -89,9 +102,15 @@ export default function OrderList() {
                   <td>{order.customer_email}</td>
                   <td><strong>${order.total_amount.toFixed(2)}</strong></td>
                   <td>
-                    <span className={`badge ${STATUS_BADGE[order.status] || 'badge-warning'}`}>
-                      {STATUS_LABELS[order.status] || order.status}
-                    </span>
+                    {(() => {
+                      const Icon = STATUS_ICONS[order.status]
+                      return (
+                        <span className={`badge ${STATUS_BADGE[order.status] || 'badge-warning'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          {Icon && <Icon size={14} />}
+                          {STATUS_LABELS[order.status] || order.status}
+                        </span>
+                      )
+                    })()}
                   </td>
                   <td>{new Date(order.created_at).toLocaleDateString('es-MX')}</td>
                 </tr>

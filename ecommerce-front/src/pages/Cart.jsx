@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Trash2, Plus, Minus, Check, AlertCircle } from 'lucide-react'
 import { orderService } from '../services/api'
 import { useCart } from '../context/CartContext'
 
@@ -60,6 +61,7 @@ export default function Cart() {
       <div className="cart-layout">
         {message && (
           <div className={message.type === 'error' ? 'error' : 'success'}>
+            {message.type === 'error' ? <AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} /> : <Check size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />}
             {message.text}
           </div>
         )}
@@ -112,6 +114,7 @@ export default function Cart() {
                             className="btn btn-danger btn-small"
                             onClick={() => removeItem(item.product_id)}
                           >
+                            <Trash2 size={16} />
                             Quitar
                           </button>
                         </td>
@@ -166,7 +169,10 @@ export default function Cart() {
               disabled={loading || items.length === 0}
               style={{ width: '100%', padding: '0.85rem', fontSize: '1rem' }}
             >
-              {loading ? 'Procesando...' : 'Completar compra'}
+              {loading ? 'Procesando...' : <>
+                <Check size={18} />
+                Completar compra
+              </>}
             </button>
           </form>
         </div>
