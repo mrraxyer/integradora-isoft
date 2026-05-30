@@ -1,27 +1,24 @@
-# 🛒 Ecommerce Platform - FASE 1
+# 🛒 Ecommerce Platform
 
-Aplicación fullstack de ecommerce con **FastAPI** (Backend), **React + Vite** (Frontend), y **PostgreSQL** (Base de Datos).
+Aplicación fullstack de ecommerce con **Express.js** (Backend), **React + Vite** (Frontend), y **PostgreSQL** (Base de Datos).
 
-## ✅ Estado de la FASE 1
+## ✅ Componentes Implementados
 
-Esta es la **FASE 1: Infraestructura Base + CRUD Completo**.
-
-### Componentes Implementados
-- ✅ Backend FastAPI con rutas CRUD funcionales
-- ✅ Modelos SQLAlchemy (Producto, Categoría, Orden)
-- ✅ Validación con Pydantic
+- ✅ Backend Express.js con rutas CRUD funcionales
+- ✅ Modelos Sequelize (Producto, Categoría, Orden, Usuario)
+- ✅ Validación con express-validator y Zod
+- ✅ Swagger/OpenAPI documentation automática
 - ✅ Frontend React con React Router
 - ✅ Servicios de API integrados
-- ✅ Seed data con 11 productos de ejemplo
+- ✅ Seed data con 6 productos de ejemplo
 - ✅ Docker Compose configurado
 - ✅ CORS configurado correctamente
+- ✅ Tests con Jest y Vitest
 
-### Por Hacer (Fases Siguientes)
-- 🔄 Testing con Pytest y Jest
-- 🔄 Autenticación y autorización
+### Por Implementar
+- 🔄 Autenticación JWT completa
 - 🔄 Carrito de compras persistente
 - 🔄 Procesamiento de pagos
-- 🔄 Swagger/OpenAPI documentation completa
 - 🔄 Logging avanzado
 
 ---
@@ -58,55 +55,72 @@ Espera 2-3 minutos en la primera ejecución mientras se descargan e instalan las
 ### 4. Acceder a la aplicación
 
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Docs (Swagger)**: http://localhost:8000/docs
+- **Backend API**: http://localhost:3000
+- **API Docs (Swagger)**: http://localhost:3000/api-docs
+- **Health Check**: http://localhost:3000/health
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 ```
-integradora-isoft-fase1/
-├── backend/                          # FastAPI Backend
-│   ├── main.py                       # Entrada principal
-│   ├── models/
-│   │   ├── base.py                   # Base declarativa
-│   │   ├── category.py               # Modelo de Categoría
-│   │   ├── product.py                # Modelo de Producto
-│   │   └── order.py                  # Modelos de Orden
-│   ├── routes/
-│   │   ├── products.py               # Rutas CRUD de productos
-│   │   ├── categories.py             # Rutas CRUD de categorías
-│   │   └── orders.py                 # Rutas CRUD de órdenes
-│   ├── schemas.py                    # Esquemas Pydantic de validación
-│   ├── database.py                   # Utilidades y seed data
-│   ├── requirements.txt              # Dependencias Python
-│   ├── Dockerfile                    # Imagen Docker
+integradora-isoft/
+├── backend/                          # Express.js Backend
+│   ├── src/
+│   │   ├── models/
+│   │   │   ├── Product.js            # Modelo de Producto
+│   │   │   ├── Category.js           # Modelo de Categoría
+│   │   │   ├── Order.js              # Modelo de Orden
+│   │   │   └── User.js               # Modelo de Usuario
+│   │   ├── routes/
+│   │   │   ├── products.js           # Rutas CRUD de productos
+│   │   │   ├── categories.js         # Rutas CRUD de categorías
+│   │   │   ├── orders.js             # Rutas CRUD de órdenes
+│   │   │   └── auth.js               # Rutas de autenticación
+│   │   ├── middleware/
+│   │   │   ├── auth.js               # Middleware de JWT
+│   │   │   └── validate.js           # Middleware de validación
+│   │   ├── config/
+│   │   │   ├── db.js                 # Configuración de BD
+│   │   │   └── swagger.js            # Configuración Swagger
+│   │   ├── utils/
+│   │   │   └── formatters.js         # Formateadores de datos
+│   │   ├── app.js                    # Configuración Express
+│   │   ├── server.js                 # Entrada principal
+│   │   ├── seed.js                   # Seed data
+│   │   └── tests/
+│   ├── package.json
+│   ├── .env.example
+│   ├── Dockerfile
 │   └── .gitignore
 │
-├── ecommerce-front/                  # React Frontend
+├── ecommerce-front/                  # React + Vite Frontend
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── ProductList.jsx       # Listado de productos
-│   │   │   ├── ProductDetail.jsx     # Detalle de producto
-│   │   │   ├── CategoryList.jsx      # Listado de categorías
-│   │   │   ├── OrderList.jsx         # Listado de órdenes
-│   │   │   └── Cart.jsx              # Carrito (placeholder)
+│   │   │   ├── ProductList.jsx
+│   │   │   ├── ProductDetail.jsx
+│   │   │   ├── CategoryList.jsx
+│   │   │   ├── OrderList.jsx
+│   │   │   └── Cart.jsx
+│   │   ├── context/
+│   │   │   └── CartContext.jsx
 │   │   ├── services/
-│   │   │   └── api.js                # Cliente HTTP con axios
-│   │   ├── App.jsx                   # Componente principal
-│   │   ├── index.css                 # Estilos globales
-│   │   └── main.jsx                  # Entrada React
+│   │   │   └── api.js
+│   │   ├── __tests__/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── Dockerfile
 │   └── .gitignore
 │
-├── docker-compose.yml                # Orquestación de servicios
-├── .env.example                      # Variables de entorno
+├── docker-compose.yml
+├── .env.example
+├── .env
 ├── .gitignore
-└── README.md                         # Este archivo
+└── README.md
 ```
 
 ---
@@ -118,13 +132,13 @@ integradora-isoft-fase1/
 - `GET /api/products/{id}` - Obtener un producto específico
 - `POST /api/products` - Crear nuevo producto
 - `PUT /api/products/{id}` - Actualizar producto
-- `DELETE /api/products/{id}` - Eliminar producto (soft delete)
+- `DELETE /api/products/{id}` - Eliminar producto
 
 **Parámetros de GET /api/products:**
-- `skip`: Registros a saltar (default: 0)
-- `limit`: Cantidad a devolver (default: 10, max: 100)
-- `category_id`: Filtrar por categoría
-- `is_active`: Filtrar por estado activo (default: true)
+- `page`: Número de página (default: 1)
+- `limit`: Cantidad a devolver (default: 20, max: 100)
+- `category`: Filtrar por nombre de categoría
+- `available`: Filtrar por disponibilidad (true/false)
 
 ### Categorías
 - `GET /api/categories` - Listar todas las categorías
@@ -136,9 +150,14 @@ integradora-isoft-fase1/
 ### Órdenes
 - `GET /api/orders` - Listar órdenes con paginación
 - `GET /api/orders/{id}` - Obtener una orden con detalles
-- `POST /api/orders` - Crear orden (descuenta stock automáticamente)
+- `POST /api/orders` - Crear orden
 - `PUT /api/orders/{id}` - Actualizar estado de orden
-- `DELETE /api/orders/{id}` - Cancelar orden (solo si está en pending)
+- `DELETE /api/orders/{id}` - Cancelar orden
+
+### Autenticación
+- `POST /api/auth/register` - Registrar nuevo usuario
+- `POST /api/auth/login` - Iniciar sesión
+- `GET /api/auth/me` - Obtener datos del usuario actual
 
 ---
 
@@ -147,32 +166,46 @@ integradora-isoft-fase1/
 ### Crear un producto
 
 ```bash
-curl -X POST "http://localhost:8000/api/products" \
+curl -X POST "http://localhost:3000/api/products" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Nuevo Producto",
-    "description": "Descripción del producto",
-    "price": 99.99,
-    "stock": 10,
-    "sku": "PROD-001",
-    "category_id": 1,
-    "is_active": true
+    "name": "Laptop Gaming",
+    "description": "Laptop para gaming de alta gama",
+    "price": 1499.99,
+    "stock": 5,
+    "sku": "GAMING-001"
   }'
+```
+
+### Listar productos con paginación
+
+```bash
+curl "http://localhost:3000/api/products?page=1&limit=10&category=Electrónica"
 ```
 
 ### Crear una orden
 
 ```bash
-curl -X POST "http://localhost:8000/api/orders" \
+curl -X POST "http://localhost:3000/api/orders" \
   -H "Content-Type: application/json" \
   -d '{
-    "customer_name": "Juan Pérez",
-    "customer_email": "juan@ejemplo.com",
+    "user_id": 1,
+    "total_amount": 100.00,
     "items": [
-      {"product_id": 1, "quantity": 2},
-      {"product_id": 3, "quantity": 1}
-    ],
-    "notes": "Entregar después de las 5pm"
+      {"product_id": 1, "quantity": 2}
+    ]
+  }'
+```
+
+### Registrar usuario
+
+```bash
+curl -X POST "http://localhost:3000/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Juan Pérez",
+    "email": "juan@ejemplo.com",
+    "password": "password123"
   }'
 ```
 
@@ -250,25 +283,33 @@ ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,https://mi-dominio.c
 ## 📝 Notas Importantes
 
 ### Stack utilizado
-- **Backend**: FastAPI (Python), no Express (Node) como originalmente pediste
-  - ✅ Es superior para APIs REST
-  - ✅ La infraestructura ya está completamente montada
-  - ✅ Permite aprender conceptos idénticos: validación, rutas, BD, testing
+- **Backend**: Express.js + Sequelize (Node.js)
+  - ✅ Framework web más popular
+  - ✅ ORM con Sequelize para PostgreSQL
+  - ✅ Swagger automático con swagger-jsdoc
+  - ✅ Validación con express-validator + Zod
+
+- **Frontend**: React + Vite + React Router
+  - ✅ Desarrollo rápido con HMR
+  - ✅ Testing con Vitest + Supertest
+  - ✅ Gestión de estado con Context API
+
+- **Base de datos**: PostgreSQL 16 en Docker
+  - ✅ Datos persistentes en volúmenes
+  - ✅ Auto-sincronización con Sequelize
+  - ✅ Seed data automático al iniciar
 
 ### Autenticación
-No incluida en FASE 1. Se implementará en colaborativo una vez completes esto.
-
-### Base de datos
-Se usa **PostgreSQL 16** (Alpine) en Docker. Los datos se persisten en un volumen.
+Rutas de registro y login implementadas en `/api/auth/`. JWT tokens en headers.
 
 ---
 
-## 🔄 Flujo de desarrollo
+## 🔄 Próximos pasos (Implementación)
 
 ### Para el backend
-1. Edita archivos en `./backend`
-2. Los cambios se recargan automáticamente (uvicorn --reload)
-3. Verifica en http://localhost:8000/docs
+1. Edita archivos en `./backend/src`
+2. Los cambios se recargan automáticamente (nodemon)
+3. Verifica en http://localhost:3000/api-docs
 
 ### Para el frontend
 1. Edita archivos en `./ecommerce-front/src`
@@ -280,13 +321,14 @@ Se usa **PostgreSQL 16** (Alpine) en Docker. Los datos se persisten en un volume
 ## 🐛 Solución de problemas
 
 ### "Port is already in use"
-Si el puerto 5173, 8000 o 5432 ya está en uso:
+Si el puerto 5173, 3000 o 5432 ya está en uso:
 
 ```bash
 # Cambiar puertos en .env
-BACKEND_PORT=8001
+BACKEND_PORT=3001
+POSTGRES_PORT=5433
 # O detener servicios conflictivos
-lsof -i :5173
+lsof -i :3000
 kill -9 <PID>
 ```
 
@@ -303,7 +345,14 @@ docker compose up --build
 ### Frontend no carga API
 Verifica que `VITE_API_URL` en `.env` sea correcto:
 ```
-VITE_API_URL=http://localhost:8000/api
+VITE_API_URL=http://localhost:3000/api
+```
+
+### Error: "DATABASE_URL undefined"
+Backend no encuentra variable de entorno. Asegúrate que `.env` exista en raíz del proyecto:
+```bash
+cp .env.example .env
+# Edita .env si es necesario
 ```
 
 ### Node/npm issues
@@ -316,13 +365,15 @@ docker compose up --build
 
 ---
 
-## 📈 Próximos pasos (FASE 2)
+## 📈 Próximos pasos
 
-1. **Testing**: Pytest para backend, Jest para frontend
-2. **Autenticación**: JWT tokens
-3. **Validación avanzada**: Zod + Pydantic decorators
-4. **Swagger/OpenAPI**: Documentación automática
-5. **Logging**: Morgan para backend
+1. **Completar autenticación JWT**: Middleware de protección de rutas
+2. **Testing**: Cobertura completa con Jest + Supertest
+3. **Carrito persistente**: Base de datos en lugar de localStorage
+4. **Pagos**: Integración con Stripe/Mercado Pago
+5. **Admin panel**: Gestión de productos y órdenes
+6. **Notificaciones**: Email de confirmación de órdenes
+7. **Búsqueda avanzada**: Filtros y búsqueda full-text
 
 ---
 

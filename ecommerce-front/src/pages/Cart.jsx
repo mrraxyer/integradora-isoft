@@ -37,7 +37,7 @@ export default function Cart() {
       const response = await orderService.create(orderData)
       setMessage({
         type: 'success',
-        text: `Pedido #${response.data.id} creado con éxito. Total: $${response.data.total_amount.toFixed(2)}`,
+        text: `Pedido #${response.data.data.id} creado con éxito. Total: $${response.data.data.total_amount.toFixed(2)}`,
       })
       setCustomerName('')
       setCustomerEmail('')

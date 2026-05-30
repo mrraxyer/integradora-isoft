@@ -26,15 +26,19 @@ services:
       dockerfile: Dockerfile
     container_name: ecommerce-api
     environment:
+      NODE_ENV: production
+      PORT: 3000
       DATABASE_URL: postgresql://${DB_USER:-ecommerce_user}:${DB_PASSWORD:-ecommerce_pass}@postgres:5432/${DB_NAME:-ecommerce}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./backend:/app
+      - /app/node_modules
     networks:
       - ecommerce-network
 
@@ -44,7 +48,7 @@ services:
       dockerfile: Dockerfile
     container_name: ecommerce-web
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
       VITE_APP_NAME: ${VITE_APP_NAME:-Ecommerce}
     ports:
       - "5173:5173"

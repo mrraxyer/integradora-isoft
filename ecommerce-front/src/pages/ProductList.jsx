@@ -25,7 +25,7 @@ export default function ProductList() {
     try {
       const skip = (page - 1) * LIMIT
       const response = await productService.list(skip, LIMIT, selectedCategoryId)
-      const data = response.data
+      const data = response.data.data
       setProducts(data)
       setHasMore(data.length === LIMIT)
       if (page === 1) {

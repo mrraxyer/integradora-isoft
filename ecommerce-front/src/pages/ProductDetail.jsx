@@ -22,7 +22,7 @@ export default function ProductDetail() {
     setError(null)
     try {
       const response = await productService.get(id)
-      setProduct(response.data)
+      setProduct(response.data.data)
     } catch (err) {
       setError('Error al cargar el producto: ' + err.message)
     } finally {

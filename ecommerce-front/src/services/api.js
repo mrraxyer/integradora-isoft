@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 const api = axios.create({
   baseURL: API_URL,
@@ -32,11 +32,12 @@ api.interceptors.response.use(
   }
 )
 
-// FastAPI uses skip/limit; category_id is an integer; returns arrays directly
+// Express.js backend using pagination with page/limit
 export const productService = {
-  list: (skip = 0, limit = 20, categoryId = null, isActive = true) => {
-    const params = { skip, limit, is_active: isActive }
-    if (categoryId !== null) params.category_id = categoryId
+  list: (skip = 0, limit = 20, categoryId = null) => {
+    const page = Math.floor(skip / limit) + 1
+    const params = { page, limit }
+    if (categoryId !== null) params.category = categoryId
     return api.get('/products', { params })
   },
   get: (id) => api.get(`/products/${id}`),
