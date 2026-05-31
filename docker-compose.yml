@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -40,8 +40,8 @@ services:
     environment:
       VITE_API_URL: ${VITE_API_URL}
       VITE_APP_NAME: ${VITE_APP_NAME:-Ecommerce}
-    ports:
-      - "5173:5173"
+    expose:
+      - "5173"
     depends_on:
       - backend
     networks:
