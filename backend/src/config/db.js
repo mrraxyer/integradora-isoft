@@ -21,10 +21,17 @@ const connectDB = async () => {
   const Product = require('../models/Product');
   const Category = require('../models/Category');
   const Order = require('../models/Order');
+  const User = require('../models/User');
+  const CartItem = require('../models/CartItem');
 
   // Define associations
   Product.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
   Category.hasMany(Product, { foreignKey: 'categoryId' });
+
+  User.hasMany(CartItem, { foreignKey: 'userId' });
+  CartItem.belongsTo(User, { foreignKey: 'userId' });
+  Product.hasMany(CartItem, { foreignKey: 'productId' });
+  CartItem.belongsTo(Product, { foreignKey: 'productId' });
 
   await sequelize.authenticate();
   await sequelize.sync({ alter: true });

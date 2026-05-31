@@ -7,12 +7,14 @@ const productRoutes = require('./routes/products');
 const categoryRoutes = require('./routes/categories');
 const orderRoutes = require('./routes/orders');
 const authRoutes = require('./routes/auth');
+const cartRoutes = require('./routes/cart');
 
 // Import models to register them with sequelize
 const Product = require('./models/Product');
 const Category = require('./models/Category');
 const Order = require('./models/Order');
 const User = require('./models/User');
+const CartItem = require('./models/CartItem');
 
 require('dotenv').config();
 
@@ -50,6 +52,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/cart', cartRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

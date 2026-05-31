@@ -9,6 +9,7 @@ const {
   productZodSchema,
   validateWithZod,
 } = require('../middleware/validate');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -298,6 +299,8 @@ router.get('/:id/availability', async (req, res) => {
  *   post:
  *     summary: Create a new product
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -316,11 +319,14 @@ router.get('/:id/availability', async (req, res) => {
  *                   $ref: '#/components/schemas/Product'
  *       400:
  *         description: Validation error
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       409:
  *         description: SKU already exists
  */
 router.post(
   '/',
+  verifyToken,
   productRules,
   handleValidationErrors,
   validateWithZod(productZodSchema),
@@ -343,6 +349,8 @@ router.post(
  *   put:
  *     summary: Update a product
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -360,6 +368,8 @@ router.post(
  *         description: Product updated
  *       400:
  *         description: Validation error
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       404:
  *         description: Product not found
  *       409:
@@ -367,6 +377,7 @@ router.post(
  */
 router.put(
   '/:id',
+  verifyToken,
   productRules,
   handleValidationErrors,
   validateWithZod(productZodSchema),
@@ -391,6 +402,8 @@ router.put(
  *   delete:
  *     summary: Delete a product
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -407,10 +420,12 @@ router.put(
  *               properties:
  *                 message:
  *                   type: string
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       404:
  *         description: Product not found
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
