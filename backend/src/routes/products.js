@@ -213,7 +213,7 @@ router.get('/', async (req, res) => {
       }],
       limit: parsedLimit,
       offset,
-      order: [['createdAt', 'DESC']],
+      order: [['id', 'ASC']],
     });
 
     res.json({

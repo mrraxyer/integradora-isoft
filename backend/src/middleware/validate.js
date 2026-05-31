@@ -21,6 +21,7 @@ const productZodSchema = z.object({
     .min(0, 'Stock must be greater than or equal to 0'),
   sku: z.string().min(1, 'SKU is required').max(50),
   category: z.string().nullable().optional(),
+  image_url: z.string().url('Must be a valid URL').nullable().optional(),
 });
 
 const validateWithZod = (schema) => (req, res, next) => {

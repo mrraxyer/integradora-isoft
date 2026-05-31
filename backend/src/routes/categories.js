@@ -31,7 +31,7 @@ const { verifyToken, requireAdmin } = require('../middleware/auth');
  */
 router.get('/', async (req, res) => {
   try {
-    const categories = await Category.findAll();
+    const categories = await Category.findAll({ order: [['id', 'ASC']] });
     res.json({ data: categories });
   } catch {
     res.status(500).json({ error: 'Internal server error' });

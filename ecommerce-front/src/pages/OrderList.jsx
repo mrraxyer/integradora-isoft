@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Clock, Loader2, Truck, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { orderService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import DataTable from '../components/DataTable'
 
 const STATUS_LABELS = {
   pending: 'Pendiente',
@@ -27,8 +28,12 @@ const STATUS_BADGE = {
   cancelled: 'badge-danger',
 }
 
+const STATUS_OPTIONS = Object.keys(STATUS_LABELS)
+
 export default function OrderList() {
   const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
+
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -51,13 +56,22 @@ export default function OrderList() {
     }
   }
 
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      await orderService.update(orderId, { status: newStatus })
+      loadOrders()
+    } catch (err) {
+      setError('Error actualizando estado: ' + (err.response?.data?.error || err.message))
+    }
+  }
+
   if (loading) return <div className="loading">Cargando órdenes...</div>
 
   return (
     <div>
       <h1>Órdenes</h1>
 
-      {user?.role === 'admin' && (
+      {isAdmin && (
         <div className="filter-bar">
           <button
             className={`btn btn-filter ${statusFilter === null ? 'active' : ''}`}
@@ -65,7 +79,7 @@ export default function OrderList() {
           >
             Todas
           </button>
-          {Object.keys(STATUS_LABELS).map((status) => {
+          {STATUS_OPTIONS.map((status) => {
             const Icon = STATUS_ICONS[status]
             return (
               <button
@@ -83,50 +97,61 @@ export default function OrderList() {
 
       {error && <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{error}</div>}
 
-      {orders.length === 0 ? (
-        <div className="empty-state">No hay órdenes disponibles</div>
-      ) : (
-        <div className="table-responsive">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Cliente</th>
-                <th>Email</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => {
-                const date = order.createdAt || order.created_at
-                const dateStr = date ? new Date(date).toLocaleDateString('es-MX') : 'N/A'
-                return (
-                <tr key={order.id}>
-                  <td><strong>#{order.id}</strong></td>
-                  <td>{order.user?.name || 'N/A'}</td>
-                  <td>{order.user?.email || 'N/A'}</td>
-                  <td><strong>${parseFloat(order.total_amount).toFixed(2)}</strong></td>
-                  <td>
-                    {(() => {
-                      const Icon = STATUS_ICONS[order.status]
-                      return (
-                        <span className={`badge ${STATUS_BADGE[order.status] || 'badge-warning'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          {Icon && <Icon size={14} />}
-                          {STATUS_LABELS[order.status] || order.status}
-                        </span>
-                      )
-                    })()}
-                  </td>
-                  <td>{dateStr}</td>
-                </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={orders}
+        empty="No hay órdenes disponibles"
+        columns={[
+          {
+            key: 'id',
+            header: '#',
+            width: '60px',
+            render: (o) => <strong>#{o.id}</strong>,
+          },
+          ...(isAdmin
+            ? [
+                { key: 'user_name', header: 'Cliente', render: (o) => o.user?.name || 'N/A' },
+                { key: 'user_email', header: 'Email', render: (o) => o.user?.email || 'N/A' },
+              ]
+            : []),
+          {
+            key: 'total_amount',
+            header: 'Total',
+            render: (o) => <strong>${parseFloat(o.total_amount).toFixed(2)}</strong>,
+          },
+          {
+            key: 'status',
+            header: 'Estado',
+            render: (o) => {
+              const Icon = STATUS_ICONS[o.status]
+              return isAdmin ? (
+                <select
+                  value={o.status}
+                  onChange={(e) => handleStatusChange(o.id, e.target.value)}
+                  className="form-select"
+                  style={{ width: 'auto', padding: '0.3rem 0.6rem', fontSize: '0.85rem' }}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                  ))}
+                </select>
+              ) : (
+                <span className={`badge ${STATUS_BADGE[o.status] || 'badge-warning'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  {Icon && <Icon size={14} />}
+                  {STATUS_LABELS[o.status] || o.status}
+                </span>
+              )
+            },
+          },
+          {
+            key: 'date',
+            header: 'Fecha',
+            render: (o) => {
+              const d = o.createdAt || o.created_at
+              return d ? new Date(d).toLocaleDateString('es-MX') : 'N/A'
+            },
+          },
+        ]}
+      />
     </div>
   )
 }

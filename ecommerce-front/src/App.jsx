@@ -52,12 +52,14 @@ function NavBar() {
                   Órdenes
                 </Link>
               </li>
-              <li className="nav-item">
-                <Link to="/carrito" className="nav-link">
-                  <ShoppingCart size={18} />
-                  Carrito{totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
-                </Link>
-              </li>
+              {user?.role !== 'admin' && (
+                <li className="nav-item">
+                  <Link to="/carrito" className="nav-link">
+                    <ShoppingCart size={18} />
+                    Carrito{totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
+                  </Link>
+                </li>
+              )}
             </>
           )}
         </ul>
@@ -117,7 +119,7 @@ function AppContent() {
           <Route
             path="/carrito"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute nonAdmin>
                 <Cart />
               </ProtectedRoute>
             }
