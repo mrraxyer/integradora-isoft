@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Trash2, ShoppingCart, Eye, AlertCircle, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package } from 'lucide-react'
 import { productService } from '../services/api'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 const LIMIT = 20
 
@@ -25,6 +26,7 @@ const CategoryIcon = ({ categoryName, size = 64, className = '' }) => {
 
 export default function ProductList() {
   const { addItem } = useCart()
+  const { isAuthenticated } = useAuth()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
@@ -123,7 +125,7 @@ export default function ProductList() {
                 <p className="card-category">{product.category?.name}</p>
                 <h3 className="card-title">{product.name}</h3>
                 <p className="card-description">{product.description}</p>
-                <p className="card-price">${product.price.toFixed(2)}</p>
+                <p className="card-price">${parseFloat(product.price).toFixed(2)}</p>
                 <div className="card-footer">
                   <span className={`badge ${product.stock > 0 ? 'badge-success' : 'badge-danger'}`}>
                     {product.stock > 0 ? `${product.stock} en stock` : 'Agotado'}
@@ -135,24 +137,23 @@ export default function ProductList() {
                     <Eye size={16} />
                     Ver
                   </Link>
-                  <button
-                    className="btn btn-success btn-small"
-                    disabled={!product.is_active || product.stock === 0}
-                    onClick={() =>
-                      addItem({
-                        product_id: product.id,
-                        name: product.name,
-                        price: product.price,
-                        sku: product.sku,
-                        stock: product.stock,
-                        category: product.category?.name,
-                        quantity: 1,
-                      })
-                    }
+                  {isAuthenticated ? (
+                    <button
+                      className="btn btn-success btn-small"
+                      disabled={product.stock === 0}
+                      onClick={() =>
+                        addItem(product.id, 1)
+                      }
                   >
-                    <ShoppingCart size={16} />
-                    Agregar
-                  </button>
+                      <ShoppingCart size={16} />
+                      Agregar
+                    </button>
+                  ) : (
+                    <Link to="/login" className="btn btn-primary btn-small">
+                      <ShoppingCart size={16} />
+                      Ingresar
+                    </Link>
+                  )}
                   <button
                     className="btn btn-danger btn-small"
                     onClick={() => handleDelete(product.id)}

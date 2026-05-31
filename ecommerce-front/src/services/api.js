@@ -72,4 +72,12 @@ export const authService = {
   me: () => api.get('/auth/me'),
 }
 
+export const cartService = {
+  list: () => api.get('/cart'),
+  add: (productId, quantity) => api.post('/cart', { productId, quantity }),
+  update: (id, quantity) => api.put(`/cart/${id}`, { quantity }),
+  remove: (id) => api.delete(`/cart/${id}`),
+  clear: () => api.delete('/cart/clear/all'),
+}
+
 export default api

@@ -143,8 +143,17 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const order = await Order.create(req.body);
-    res.status(201).json({ data: order });
+    const orderData = {
+      ...req.body,
+      user_id: req.user.id,
+    };
+    const order = await Order.create(orderData);
+    res.status(201).json({
+      data: {
+        ...order.toJSON(),
+        total_amount: parseFloat(order.total_amount),
+      },
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
