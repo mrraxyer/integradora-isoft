@@ -37,11 +37,11 @@ services:
     build:
       context: ./ecommerce-front
       dockerfile: Dockerfile
-    environment:
-      VITE_API_URL: ${VITE_API_URL}
-      VITE_APP_NAME: ${VITE_APP_NAME:-Ecommerce}
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_APP_NAME: ${VITE_APP_NAME:-Ecommerce}
     expose:
-      - "5173"
+      - "80"
     depends_on:
       - backend
     networks:
