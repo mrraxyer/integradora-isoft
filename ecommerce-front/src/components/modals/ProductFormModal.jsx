@@ -114,7 +114,7 @@ export default function ProductFormModal({ product, categories, onSuccess, onClo
               <label className="form-label">Categoría</label>
               <select name="category" value={formData.category} onChange={handleChange} className="form-select">
                 <option value="">Sin categoría</option>
-                {categories.map((cat) => (
+                {(categories ?? []).map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>

@@ -52,7 +52,7 @@ export default function MoveProductModal({ product, categories, onSuccess, onClo
                 className="form-select"
               >
                 <option value="">Sin categoría</option>
-                {categories.map((cat) => (
+                {(categories ?? []).map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>

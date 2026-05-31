@@ -4,7 +4,7 @@
  * keyExtractor?: (row) => string|number  — defaults to row.id
  * empty?: string
  */
-export default function DataTable({ columns, data, keyExtractor, empty = 'Sin datos' }) {
+export default function DataTable({ columns = [], data, keyExtractor, empty = 'Sin datos' }) {
   const getKey = keyExtractor ?? ((row) => row.id)
 
   if (!data || data.length === 0) {
