@@ -5,7 +5,7 @@ Aplicación fullstack de ecommerce con **Express.js** (Backend), **React + Vite*
 ## ✅ Componentes Implementados
 
 - ✅ Backend Express.js con rutas CRUD funcionales
-- ✅ Modelos Sequelize (Producto, Categoría, Orden, Usuario)
+- ✅ Modelos Sequelize (Producto, Categoría, Orden, Usuario, CartItem)
 - ✅ Validación con express-validator y Zod
 - ✅ Swagger/OpenAPI documentation automática
 - ✅ Frontend React con React Router
@@ -14,10 +14,16 @@ Aplicación fullstack de ecommerce con **Express.js** (Backend), **React + Vite*
 - ✅ Docker Compose configurado
 - ✅ CORS configurado correctamente
 - ✅ Tests con Jest y Vitest
+- ✅ **Autenticación JWT completa**
+  - Registro y login con bcrypt
+  - Rutas protegidas POST/PUT/DELETE
+  - Tokens con expiración (7 días default)
+- ✅ **Carrito de compras persistente en BD**
+  - Tabla CartItem con userId/productId/quantity
+  - Validación de stock
+  - GET/POST/PUT/DELETE de items
 
 ### Por Implementar
-- 🔄 Autenticación JWT completa
-- 🔄 Carrito de compras persistente
 - 🔄 Procesamiento de pagos
 - 🔄 Logging avanzado
 
@@ -71,12 +77,14 @@ integradora-isoft/
 │   │   │   ├── Product.js            # Modelo de Producto
 │   │   │   ├── Category.js           # Modelo de Categoría
 │   │   │   ├── Order.js              # Modelo de Orden
-│   │   │   └── User.js               # Modelo de Usuario
+│   │   │   ├── User.js               # Modelo de Usuario
+│   │   │   └── CartItem.js           # Modelo de Item del Carrito
 │   │   ├── routes/
-│   │   │   ├── products.js           # Rutas CRUD de productos
-│   │   │   ├── categories.js         # Rutas CRUD de categorías
-│   │   │   ├── orders.js             # Rutas CRUD de órdenes
-│   │   │   └── auth.js               # Rutas de autenticación
+│   │   │   ├── products.js           # Rutas CRUD de productos (protegidas)
+│   │   │   ├── categories.js         # Rutas CRUD de categorías (protegidas)
+│   │   │   ├── orders.js             # Rutas CRUD de órdenes (protegidas)
+│   │   │   ├── auth.js               # Rutas de autenticación
+│   │   │   └── cart.js               # Rutas del carrito (protegidas)
 │   │   ├── middleware/
 │   │   │   ├── auth.js               # Middleware de JWT
 │   │   │   └── validate.js           # Middleware de validación
@@ -157,7 +165,14 @@ integradora-isoft/
 ### Autenticación
 - `POST /api/auth/register` - Registrar nuevo usuario
 - `POST /api/auth/login` - Iniciar sesión
-- `GET /api/auth/me` - Obtener datos del usuario actual
+- `GET /api/auth/me` - Obtener datos del usuario actual (requiere JWT)
+
+### Carrito de Compras
+- `GET /api/cart` - Listar items del carrito (requiere JWT)
+- `POST /api/cart` - Agregar producto al carrito (requiere JWT)
+- `PUT /api/cart/{id}` - Actualizar cantidad de item (requiere JWT)
+- `DELETE /api/cart/{id}` - Eliminar item del carrito (requiere JWT)
+- `DELETE /api/cart/clear/all` - Vaciar carrito completo (requiere JWT)
 
 ---
 
@@ -207,6 +222,56 @@ curl -X POST "http://localhost:3000/api/auth/register" \
     "email": "juan@ejemplo.com",
     "password": "password123"
   }'
+```
+
+Respuesta incluye `token` — guardarlo para autenticar requests.
+
+### Iniciar sesión
+
+```bash
+curl -X POST "http://localhost:3000/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "juan@ejemplo.com",
+    "password": "password123"
+  }'
+```
+
+### Agregar producto al carrito
+
+```bash
+curl -X POST "http://localhost:3000/api/cart" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{
+    "productId": 1,
+    "quantity": 2
+  }'
+```
+
+### Ver carrito
+
+```bash
+curl -X GET "http://localhost:3000/api/cart" \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+### Actualizar cantidad en carrito
+
+```bash
+curl -X PUT "http://localhost:3000/api/cart/1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{
+    "quantity": 5
+  }'
+```
+
+### Eliminar producto del carrito
+
+```bash
+curl -X DELETE "http://localhost:3000/api/cart/1" \
+  -H "Authorization: Bearer <TOKEN>"
 ```
 
 ---
@@ -265,6 +330,33 @@ La base de datos se inicializa automáticamente con:
 Esto facilita el desarrollo y testing sin necesidad de crear datos manualmente.
 
 ---
+
+## 🔐 Autenticación JWT
+
+### Cómo funciona:
+1. Usuario se registra/login → obtiene token JWT
+2. Token contiene: id, email, name, role, expiración (7 días)
+3. Frontend almacena token en localStorage
+4. Para requests autenticadas: `Authorization: Bearer <token>`
+5. Middleware verifyToken valida token antes de procesar
+
+### Rutas protegidas:
+- Todas las mutaciones (POST, PUT, DELETE) en productos, categorías, órdenes
+- Todas las operaciones en carrito
+- GET /api/auth/me
+
+### Rutas públicas:
+- GET /api/products (listado)
+- GET /api/products/:id (detalle)
+- GET /api/categories
+- POST /api/auth/register
+- POST /api/auth/login
+
+### Variables de entorno:
+```
+JWT_SECRET=tu-secret-key (default: dev_secret)
+JWT_EXPIRES_IN=7d
+```
 
 ## 🔐 CORS Configuration
 
@@ -367,13 +459,13 @@ docker compose up --build
 
 ## 📈 Próximos pasos
 
-1. **Completar autenticación JWT**: Middleware de protección de rutas
-2. **Testing**: Cobertura completa con Jest + Supertest
-3. **Carrito persistente**: Base de datos en lugar de localStorage
-4. **Pagos**: Integración con Stripe/Mercado Pago
-5. **Admin panel**: Gestión de productos y órdenes
-6. **Notificaciones**: Email de confirmación de órdenes
-7. **Búsqueda avanzada**: Filtros y búsqueda full-text
+1. **Testing**: Cobertura completa con Jest + Supertest (backend y frontend)
+2. **Pagos**: Integración con Stripe/Mercado Pago
+3. **Admin panel**: Dashboard para gestión de productos y órdenes
+4. **Notificaciones**: Email de confirmación de órdenes
+5. **Búsqueda avanzada**: Filtros full-text y búsqueda por categoría
+6. **Órdenes desde carrito**: Checkout que transfiere items a Order
+7. **Reviews/Ratings**: Sistema de reseñas de productos
 
 ---
 

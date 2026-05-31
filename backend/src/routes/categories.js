@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -71,6 +72,8 @@ router.get('/:id', async (req, res) => {
  *   post:
  *     summary: Create a new category
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -87,10 +90,12 @@ router.get('/:id', async (req, res) => {
  *     responses:
  *       201:
  *         description: Category created
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       409:
  *         description: Category already exists
  */
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const category = await Category.create(req.body);
     res.status(201).json({ data: category });
@@ -108,6 +113,8 @@ router.post('/', async (req, res) => {
  *   put:
  *     summary: Update a category
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -128,10 +135,12 @@ router.post('/', async (req, res) => {
  *     responses:
  *       200:
  *         description: Category updated
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       404:
  *         description: Category not found
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
   try {
     const category = await Category.findByPk(req.params.id);
     if (!category) return res.status(404).json({ error: 'Category not found' });
@@ -148,6 +157,8 @@ router.put('/:id', async (req, res) => {
  *   delete:
  *     summary: Delete a category
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -157,10 +168,12 @@ router.put('/:id', async (req, res) => {
  *     responses:
  *       200:
  *         description: Category deleted
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       404:
  *         description: Category not found
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const category = await Category.findByPk(req.params.id);
     if (!category) return res.status(404).json({ error: 'Category not found' });

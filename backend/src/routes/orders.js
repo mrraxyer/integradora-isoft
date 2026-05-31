@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -114,6 +115,8 @@ router.get('/:id', async (req, res) => {
  *   post:
  *     summary: Create a new order
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -135,8 +138,10 @@ router.get('/:id', async (req, res) => {
  *     responses:
  *       201:
  *         description: Order created
+ *       401:
+ *         description: Unauthorized - JWT token required
  */
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const order = await Order.create(req.body);
     res.status(201).json({ data: order });
@@ -151,6 +156,8 @@ router.post('/', async (req, res) => {
  *   put:
  *     summary: Update an order
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -173,10 +180,12 @@ router.post('/', async (req, res) => {
  *     responses:
  *       200:
  *         description: Order updated
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       404:
  *         description: Order not found
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
   try {
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -193,6 +202,8 @@ router.put('/:id', async (req, res) => {
  *   delete:
  *     summary: Cancel an order
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -202,10 +213,12 @@ router.put('/:id', async (req, res) => {
  *     responses:
  *       200:
  *         description: Order cancelled
+ *       401:
+ *         description: Unauthorized - JWT token required
  *       404:
  *         description: Order not found
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
