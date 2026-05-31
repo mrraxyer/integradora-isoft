@@ -1,8 +1,25 @@
+const bcrypt = require('bcryptjs');
 const Category = require('./models/Category');
 const Product = require('./models/Product');
+const User = require('./models/User');
 
 async function seed() {
   try {
+    // Create admin user from env
+    if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+      const existing = await User.findOne({ where: { email: process.env.ADMIN_EMAIL } });
+      if (!existing) {
+        const password_hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+        await User.create({
+          name: process.env.ADMIN_NAME || 'Administrator',
+          email: process.env.ADMIN_EMAIL,
+          password_hash,
+          role: 'admin',
+        });
+        console.log('✅ Admin user created');
+      }
+    }
+
     // Create categories
     const electronics = await Category.findOrCreate({
       where: { name: 'Electrónica' },

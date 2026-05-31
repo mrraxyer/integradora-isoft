@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
-const { verifyToken } = require('../middleware/auth');
+const User = require('../models/User');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 /**
  * @swagger
  * /api/orders:
  *   get:
- *     summary: List all orders
+ *     summary: List orders (admin sees all, users see only their own)
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -50,7 +53,7 @@ const { verifyToken } = require('../middleware/auth');
  *                 meta:
  *                   type: object
  */
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
     const parsedPage = Math.max(1, parseInt(page, 10));
@@ -58,10 +61,20 @@ router.get('/', async (req, res) => {
     const offset = (parsedPage - 1) * parsedLimit;
 
     const where = {};
-    if (status) where.status = status;
+    if (status && req.user.role === 'admin') {
+      where.status = status;
+    }
+    if (req.user.role !== 'admin') {
+      where.user_id = req.user.id;
+    }
 
     const { count, rows } = await Order.findAndCountAll({
       where,
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'name', 'email'],
+      }],
       limit: parsedLimit,
       offset,
       order: [['createdAt', 'DESC']],
@@ -87,6 +100,8 @@ router.get('/', async (req, res) => {
  *   get:
  *     summary: Get an order by ID
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -96,13 +111,24 @@ router.get('/', async (req, res) => {
  *     responses:
  *       200:
  *         description: Order found
+ *       403:
+ *         description: Forbidden - can only view own orders
  *       404:
  *         description: Order not found
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const order = await Order.findByPk(req.params.id);
+    const order = await Order.findByPk(req.params.id, {
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'name', 'email'],
+      }],
+    });
     if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden. Can only view your own orders.' });
+    }
     res.json({ data: order });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
@@ -194,7 +220,7 @@ router.post('/', verifyToken, async (req, res) => {
  *       404:
  *         description: Order not found
  */
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -227,7 +253,7 @@ router.put('/:id', verifyToken, async (req, res) => {
  *       404:
  *         description: Order not found
  */
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });

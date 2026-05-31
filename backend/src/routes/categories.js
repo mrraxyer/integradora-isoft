@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -95,7 +95,7 @@ router.get('/:id', async (req, res) => {
  *       409:
  *         description: Category already exists
  */
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', verifyToken, requireAdmin, async (req, res) => {
   try {
     const category = await Category.create(req.body);
     res.status(201).json({ data: category });
@@ -140,7 +140,7 @@ router.post('/', verifyToken, async (req, res) => {
  *       404:
  *         description: Category not found
  */
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
     const category = await Category.findByPk(req.params.id);
     if (!category) return res.status(404).json({ error: 'Category not found' });
@@ -173,7 +173,7 @@ router.put('/:id', verifyToken, async (req, res) => {
  *       404:
  *         description: Category not found
  */
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
     const category = await Category.findByPk(req.params.id);
     if (!category) return res.status(404).json({ error: 'Category not found' });

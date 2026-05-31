@@ -33,6 +33,9 @@ const connectDB = async () => {
   Product.hasMany(CartItem, { foreignKey: 'productId' });
   CartItem.belongsTo(Product, { foreignKey: 'productId' });
 
+  User.hasMany(Order, { foreignKey: 'user_id' });
+  Order.belongsTo(User, { as: 'user', foreignKey: 'user_id' });
+
   await sequelize.authenticate();
   await sequelize.sync({ alter: true });
 };

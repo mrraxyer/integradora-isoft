@@ -1,15 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Trash2, Plus, Minus, Check, AlertCircle } from 'lucide-react'
 import { orderService } from '../services/api'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function Cart() {
   const { items, totalItems, totalAmount, updateQuantity, removeItem, clearCart } = useCart()
+  const { user } = useAuth()
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
+
+  useEffect(() => {
+    if (user) {
+      setCustomerName(user.name || '')
+      setCustomerEmail(user.email || '')
+    }
+  }, [user])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -122,28 +131,8 @@ export default function Cart() {
         </div>
 
         <div className="card">
-          <h3 style={{ marginBottom: '1.5rem' }}>Datos del cliente</h3>
+          <h3 style={{ marginBottom: '1.5rem' }}>Detalles del pedido</h3>
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Nombre completo *</label>
-              <input
-                type="text"
-                className="form-input"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Juan Pérez"
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Correo electrónico *</label>
-              <input
-                type="email"
-                className="form-input"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                placeholder="juan@ejemplo.com"
-              />
-            </div>
             <div className="form-group">
               <label className="form-label">Notas (opcional)</label>
               <textarea
