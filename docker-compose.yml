@@ -3,13 +3,10 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: ecommerce-db
     environment:
       POSTGRES_DB: ${DB_NAME:-ecommerce}
       POSTGRES_USER: ${DB_USER:-ecommerce_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-ecommerce_pass}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -24,21 +21,15 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ecommerce-api
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://${DB_USER:-ecommerce_user}:${DB_PASSWORD:-ecommerce_pass}@postgres:5432/${DB_NAME:-ecommerce}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-    ports:
-      - "${BACKEND_PORT:-3000}:3000"
+      DATABASE_URL: postgresql://${DB_USER:-ecommerce_user}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-ecommerce}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
     networks:
       - ecommerce-network
 
@@ -46,17 +37,13 @@ services:
     build:
       context: ./ecommerce-front
       dockerfile: Dockerfile
-    container_name: ecommerce-web
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+      VITE_API_URL: ${VITE_API_URL}
       VITE_APP_NAME: ${VITE_APP_NAME:-Ecommerce}
     ports:
       - "5173:5173"
     depends_on:
       - backend
-    volumes:
-      - ./ecommerce-front:/app
-      - /app/node_modules
     networks:
       - ecommerce-network
 
