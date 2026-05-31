@@ -16,7 +16,8 @@ const Order = require('./models/Order');
 const User = require('./models/User');
 const CartItem = require('./models/CartItem');
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
 

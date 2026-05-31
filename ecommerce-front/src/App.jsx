@@ -36,12 +36,14 @@ function NavBar() {
               Productos
             </Link>
           </li>
-          <li className="nav-item">
-            <Link to="/categorias" className="nav-link">
-              <Grid3x3 size={18} />
-              Categorías
-            </Link>
-          </li>
+          {isAuthenticated && user?.role === 'admin' && (
+            <li className="nav-item">
+              <Link to="/categorias" className="nav-link">
+                <Grid3x3 size={18} />
+                Categorías
+              </Link>
+            </li>
+          )}
           {isAuthenticated && (
             <>
               <li className="nav-item">
@@ -94,7 +96,14 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<ProductList />} />
           <Route path="/producto/:id" element={<ProductDetail />} />
-          <Route path="/categorias" element={<CategoryList />} />
+          <Route
+            path="/categorias"
+            element={
+              <ProtectedRoute adminOnly>
+                <CategoryList />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Register />} />
           <Route

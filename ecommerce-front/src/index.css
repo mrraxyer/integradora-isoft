@@ -290,6 +290,12 @@ h2, h3 {
   margin-top: 1rem;
 }
 
+.card-actions .btn {
+  flex: 1;
+  min-width: 80px;
+  justify-content: center;
+}
+
 /* ── Product Detail ───────────────────────────────────────────────── */
 .product-detail {
   display: grid;

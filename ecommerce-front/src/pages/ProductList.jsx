@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Trash2, ShoppingCart, Eye, AlertCircle, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package } from 'lucide-react'
-import { productService } from '../services/api'
+import { productService, categoryService } from '../services/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 
@@ -26,36 +26,38 @@ const CategoryIcon = ({ categoryName, size = 64, className = '' }) => {
 
 export default function ProductList() {
   const { addItem } = useCart()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
-  const [selectedCategoryId, setSelectedCategoryId] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
 
   useEffect(() => {
+    loadCategories()
     loadProducts()
-  }, [selectedCategoryId, page])
+  }, [selectedCategory, page])
+
+  const loadCategories = async () => {
+    try {
+      const response = await categoryService.list()
+      setCategories(response.data.data)
+    } catch (err) {
+      console.error('Error loading categories:', err)
+    }
+  }
 
   const loadProducts = async () => {
     setLoading(true)
     setError(null)
     try {
       const skip = (page - 1) * LIMIT
-      const response = await productService.list(skip, LIMIT, selectedCategoryId)
+      const response = await productService.list(skip, LIMIT, selectedCategory)
       const data = response.data.data
       setProducts(data)
       setHasMore(data.length === LIMIT)
-      if (page === 1) {
-        const cats = [
-          ...new Map(
-            data.filter((p) => p.category).map((p) => [p.category.id, p.category])
-          ).values(),
-        ]
-        setCategories(cats)
-      }
     } catch (err) {
       setError('Error al cargar productos: ' + err.message)
     } finally {
@@ -84,8 +86,8 @@ export default function ProductList() {
 
       <div className="filter-bar">
         <button
-          className={`btn btn-filter ${selectedCategoryId === null ? 'active' : ''}`}
-          onClick={() => { setSelectedCategoryId(null); setPage(1) }}
+          className={`btn btn-filter ${selectedCategory === null ? 'active' : ''}`}
+          onClick={() => { setSelectedCategory(null); setPage(1) }}
         >
           Todas
         </button>
@@ -94,8 +96,8 @@ export default function ProductList() {
           return (
             <button
               key={cat.id}
-              className={`btn btn-filter ${selectedCategoryId === cat.id ? 'active' : ''}`}
-              onClick={() => { setSelectedCategoryId(cat.id); setPage(1) }}
+              className={`btn btn-filter ${selectedCategory === cat.name ? 'active' : ''}`}
+              onClick={() => { setSelectedCategory(cat.name); setPage(1) }}
             >
               <Icon size={16} />
               {cat.name}
@@ -154,12 +156,14 @@ export default function ProductList() {
                       Ingresar
                     </Link>
                   )}
-                  <button
-                    className="btn btn-danger btn-small"
-                    onClick={() => handleDelete(product.id)}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {user?.role === 'admin' && (
+                    <button
+                      className="btn btn-danger btn-small"
+                      onClick={() => handleDelete(product.id)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

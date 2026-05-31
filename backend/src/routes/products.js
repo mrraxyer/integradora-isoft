@@ -9,7 +9,7 @@ const {
   productZodSchema,
   validateWithZod,
 } = require('../middleware/validate');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -124,6 +124,11 @@ const productRules = [
  *     tags: [Products]
  *     parameters:
  *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by product name or description
+ *       - in: query
  *         name: category
  *         schema:
  *           type: string
@@ -170,11 +175,29 @@ const productRules = [
 router.get('/', async (req, res) => {
   try {
     const Category = require('../models/Category');
-    const { category, available, page = 1, limit = 20 } = req.query;
+    const { search, category, available, page = 1, limit = 20 } = req.query;
     const where = {};
+    const conditions = [];
 
-    if (available === 'true') where.stock = { [Op.gt]: 0 };
-    if (available === 'false') where.stock = 0;
+    if (search) {
+      conditions.push({
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${search}%` } },
+          { description: { [Op.iLike]: `%${search}%` } },
+        ],
+      });
+    }
+
+    if (available === 'true') {
+      conditions.push({ stock: { [Op.gt]: 0 } });
+    }
+    if (available === 'false') {
+      conditions.push({ stock: { [Op.eq]: 0 } });
+    }
+
+    if (conditions.length > 0) {
+      where[Op.and] = conditions;
+    }
 
     const parsedPage = Math.max(1, parseInt(page, 10));
     const parsedLimit = Math.min(100, Math.max(1, parseInt(limit, 10)));
@@ -327,6 +350,7 @@ router.get('/:id/availability', async (req, res) => {
 router.post(
   '/',
   verifyToken,
+  requireAdmin,
   productRules,
   handleValidationErrors,
   validateWithZod(productZodSchema),
@@ -378,6 +402,7 @@ router.post(
 router.put(
   '/:id',
   verifyToken,
+  requireAdmin,
   productRules,
   handleValidationErrors,
   validateWithZod(productZodSchema),
@@ -425,7 +450,7 @@ router.put(
  *       404:
  *         description: Product not found
  */
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Clock, Loader2, Truck, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { orderService } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 const STATUS_LABELS = {
   pending: 'Pendiente',
@@ -27,6 +28,7 @@ const STATUS_BADGE = {
 }
 
 export default function OrderList() {
+  const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -55,27 +57,29 @@ export default function OrderList() {
     <div>
       <h1>Órdenes</h1>
 
-      <div className="filter-bar">
-        <button
-          className={`btn btn-filter ${statusFilter === null ? 'active' : ''}`}
-          onClick={() => setStatusFilter(null)}
-        >
-          Todas
-        </button>
-        {Object.keys(STATUS_LABELS).map((status) => {
-          const Icon = STATUS_ICONS[status]
-          return (
-            <button
-              key={status}
-              className={`btn btn-filter ${statusFilter === status ? 'active' : ''}`}
-              onClick={() => setStatusFilter(status)}
-            >
-              <Icon size={16} />
-              {STATUS_LABELS[status]}
-            </button>
-          )
-        })}
-      </div>
+      {user?.role === 'admin' && (
+        <div className="filter-bar">
+          <button
+            className={`btn btn-filter ${statusFilter === null ? 'active' : ''}`}
+            onClick={() => setStatusFilter(null)}
+          >
+            Todas
+          </button>
+          {Object.keys(STATUS_LABELS).map((status) => {
+            const Icon = STATUS_ICONS[status]
+            return (
+              <button
+                key={status}
+                className={`btn btn-filter ${statusFilter === status ? 'active' : ''}`}
+                onClick={() => setStatusFilter(status)}
+              >
+                <Icon size={16} />
+                {STATUS_LABELS[status]}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {error && <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{error}</div>}
 
@@ -95,11 +99,14 @@ export default function OrderList() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {orders.map((order) => {
+                const date = order.createdAt || order.created_at
+                const dateStr = date ? new Date(date).toLocaleDateString('es-MX') : 'N/A'
+                return (
                 <tr key={order.id}>
                   <td><strong>#{order.id}</strong></td>
-                  <td>{order.customer_name || order.user?.name || 'N/A'}</td>
-                  <td>{order.customer_email || order.user?.email || 'N/A'}</td>
+                  <td>{order.user?.name || 'N/A'}</td>
+                  <td>{order.user?.email || 'N/A'}</td>
                   <td><strong>${parseFloat(order.total_amount).toFixed(2)}</strong></td>
                   <td>
                     {(() => {
@@ -112,9 +119,10 @@ export default function OrderList() {
                       )
                     })()}
                   </td>
-                  <td>{new Date(order.created_at).toLocaleDateString('es-MX')}</td>
+                  <td>{dateStr}</td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>

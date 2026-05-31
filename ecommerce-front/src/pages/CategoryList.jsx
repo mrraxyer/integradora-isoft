@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Trash2, AlertCircle, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package } from 'lucide-react'
 import { categoryService } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 const getCategoryIcon = (categoryName) => {
   const iconMap = {
@@ -15,6 +16,7 @@ const getCategoryIcon = (categoryName) => {
 }
 
 export default function CategoryList() {
+  const { user } = useAuth()
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -80,13 +82,15 @@ export default function CategoryList() {
                     </td>
                     <td>{cat.description}</td>
                     <td>
-                      <button
-                        className="btn btn-danger btn-small"
-                        onClick={() => handleDelete(cat.id)}
-                      >
-                        <Trash2 size={16} />
-                        Eliminar
-                      </button>
+                      {user?.role === 'admin' && (
+                        <button
+                          className="btn btn-danger btn-small"
+                          onClick={() => handleDelete(cat.id)}
+                        >
+                          <Trash2 size={16} />
+                          Eliminar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )
