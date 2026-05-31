@@ -48,7 +48,7 @@ export default function OrderList() {
     setError(null)
     try {
       const response = await orderService.list(0, 50, statusFilter)
-      setOrders(response.data.data)
+      setOrders(response.data?.data ?? [])
     } catch (err) {
       setError('Error al cargar órdenes: ' + err.message)
     } finally {

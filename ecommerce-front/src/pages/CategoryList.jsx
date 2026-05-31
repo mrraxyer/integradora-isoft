@@ -24,7 +24,7 @@ export default function CategoryList() {
     setError(null)
     try {
       const response = await categoryService.list()
-      setCategories(response.data.data)
+      setCategories(response.data?.data ?? [])
     } catch (err) {
       setError('Error al cargar categorías: ' + err.message)
     } finally {

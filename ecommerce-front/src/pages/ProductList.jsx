@@ -44,7 +44,7 @@ export default function ProductList() {
   const loadCategories = async () => {
     try {
       const response = await categoryService.list()
-      setCategories(response.data.data)
+      setCategories(response.data?.data ?? [])
     } catch (err) {
       console.error('Error loading categories:', err)
     }
@@ -56,7 +56,7 @@ export default function ProductList() {
     try {
       const skip = (page - 1) * LIMIT
       const response = await productService.list(skip, LIMIT, selectedCategory)
-      const data = response.data.data
+      const data = response.data?.data ?? []
       setProducts(data)
       setHasMore(data.length === LIMIT)
     } catch (err) {
