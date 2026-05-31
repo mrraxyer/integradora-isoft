@@ -1,119 +1,123 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from 'react'
+import { createContext, useContext, useEffect, useMemo, useCallback, useState } from 'react'
+import { cartService } from '../services/api'
+import { useAuth } from './AuthContext'
 
 const CartContext = createContext(null)
-const CART_STORAGE_KEY = 'ecommerce_cart'
-
-const initialState = {
-  items: [],
-}
-
-function loadCartFromStorage() {
-  try {
-    const stored = window.localStorage.getItem(CART_STORAGE_KEY)
-    if (!stored) return initialState
-    const parsed = JSON.parse(stored)
-    return { items: Array.isArray(parsed) ? parsed : [] }
-  } catch (error) {
-    console.error('Error reading cart from localStorage:', error)
-    return initialState
-  }
-}
-
-function cartReducer(state, action) {
-  switch (action.type) {
-    case 'ADD_ITEM': {
-      const existingIndex = state.items.findIndex(
-        (item) => item.product_id === action.payload.product_id
-      )
-
-      const nextItems = [...state.items]
-      if (existingIndex !== -1) {
-        const existingItem = nextItems[existingIndex]
-        nextItems[existingIndex] = {
-          ...existingItem,
-          quantity: Math.min(
-            existingItem.quantity + action.payload.quantity,
-            action.payload.stock
-          ),
-        }
-      } else {
-        nextItems.push({
-          ...action.payload,
-          quantity: Math.min(action.payload.quantity, action.payload.stock),
-        })
-      }
-
-      return { ...state, items: nextItems }
-    }
-
-    case 'UPDATE_QUANTITY': {
-      const nextItems = state.items.map((item) =>
-        item.product_id === action.payload.product_id
-          ? { ...item, quantity: Math.min(action.payload.quantity, item.stock) }
-          : item
-      )
-      return { ...state, items: nextItems }
-    }
-
-    case 'REMOVE_ITEM': {
-      return {
-        ...state,
-        items: state.items.filter((item) => item.product_id !== action.payload.product_id),
-      }
-    }
-
-    case 'CLEAR_CART': {
-      return { ...state, items: [] }
-    }
-
-    default:
-      return state
-  }
-}
 
 export function CartProvider({ children }) {
-  const [state, dispatch] = useReducer(cartReducer, initialState, loadCartFromStorage)
+  const { isAuthenticated } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchCart = useCallback(async () => {
+    if (!isAuthenticated) return
+    try {
+      setLoading(true)
+      const res = await cartService.list()
+      setItems(res.data.data || [])
+      setError(null)
+    } catch (err) {
+      console.error('Error fetching cart:', err)
+      setError(err.response?.data?.error || 'Error loading cart')
+    } finally {
+      setLoading(false)
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.items))
-  }, [state.items])
+    fetchCart()
+  }, [fetchCart])
 
-  const addItem = (item) => {
-    dispatch({ type: 'ADD_ITEM', payload: item })
-  }
-
-  const updateQuantity = (product_id, quantity) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { product_id, quantity } })
-  }
-
-  const removeItem = (product_id) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: { product_id } })
-  }
-
-  const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' })
-  }
-
-  const totalItems = useMemo(
-    () => state.items.reduce((sum, item) => sum + item.quantity, 0),
-    [state.items]
+  const addItem = useCallback(
+    async (productId, quantity) => {
+      if (!isAuthenticated) {
+        setError('Must be logged in to add items')
+        return { ok: false, error: 'Not authenticated' }
+      }
+      try {
+        const res = await cartService.add(productId, quantity)
+        await fetchCart()
+        return { ok: true }
+      } catch (err) {
+        const message = err.response?.data?.error || 'Error adding item'
+        setError(message)
+        return { ok: false, error: message }
+      }
+    },
+    [isAuthenticated, fetchCart]
   )
 
+  const updateQuantity = useCallback(
+    async (cartItemId, quantity) => {
+      if (!isAuthenticated) return { ok: false, error: 'Not authenticated' }
+      try {
+        await cartService.update(cartItemId, quantity)
+        await fetchCart()
+        return { ok: true }
+      } catch (err) {
+        const message = err.response?.data?.error || 'Error updating quantity'
+        setError(message)
+        return { ok: false, error: message }
+      }
+    },
+    [isAuthenticated, fetchCart]
+  )
+
+  const removeItem = useCallback(
+    async (cartItemId) => {
+      if (!isAuthenticated) return { ok: false, error: 'Not authenticated' }
+      try {
+        await cartService.remove(cartItemId)
+        await fetchCart()
+        return { ok: true }
+      } catch (err) {
+        const message = err.response?.data?.error || 'Error removing item'
+        setError(message)
+        return { ok: false, error: message }
+      }
+    },
+    [isAuthenticated, fetchCart]
+  )
+
+  const clearCart = useCallback(async () => {
+    if (!isAuthenticated) return { ok: false, error: 'Not authenticated' }
+    try {
+      await cartService.clear()
+      setItems([])
+      setError(null)
+      return { ok: true }
+    } catch (err) {
+      const message = err.response?.data?.error || 'Error clearing cart'
+      setError(message)
+      return { ok: false, error: message }
+    }
+  }, [isAuthenticated])
+
+  const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
+
   const totalAmount = useMemo(
-    () => state.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [state.items]
+    () =>
+      items.reduce((sum, item) => {
+        const price = parseFloat(item.Product?.price || 0)
+        return sum + price * item.quantity
+      }, 0),
+    [items]
   )
 
   return (
     <CartContext.Provider
       value={{
-        items: state.items,
+        items,
         totalItems,
         totalAmount,
+        loading,
+        error,
         addItem,
         updateQuantity,
         removeItem,
         clearCart,
+        refetch: fetchCart,
       }}
     >
       {children}

@@ -98,9 +98,9 @@ export default function OrderList() {
               {orders.map((order) => (
                 <tr key={order.id}>
                   <td><strong>#{order.id}</strong></td>
-                  <td>{order.customer_name}</td>
-                  <td>{order.customer_email}</td>
-                  <td><strong>${order.total_amount.toFixed(2)}</strong></td>
+                  <td>{order.customer_name || order.user?.name || 'N/A'}</td>
+                  <td>{order.customer_email || order.user?.email || 'N/A'}</td>
+                  <td><strong>${parseFloat(order.total_amount).toFixed(2)}</strong></td>
                   <td>
                     {(() => {
                       const Icon = STATUS_ICONS[order.status]

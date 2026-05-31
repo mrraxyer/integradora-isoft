@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ShoppingCart, AlertCircle, Check, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package } from 'lucide-react'
 import { productService } from '../services/api'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 const getCategoryIcon = (categoryName) => {
   const iconMap = {
@@ -25,6 +26,7 @@ export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { addItem } = useCart()
+  const { isAuthenticated } = useAuth()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -48,18 +50,16 @@ export default function ProductDetail() {
     }
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return
-    addItem({
-      product_id: product.id,
-      name: product.name,
-      price: product.price,
-      sku: product.sku,
-      stock: product.stock,
-      category: product.category?.name,
-      quantity,
-    })
-    setMessage(`Se agregaron ${quantity} unidad(es) de "${product.name}" al carrito.`)
+    const result = await addItem(product.id, quantity)
+    if (result.ok) {
+      setMessage(`Se agregaron ${quantity} unidad(es) de "${product.name}" al carrito.`)
+      setQuantity(1)
+    } else {
+      setMessage(null)
+      setError(result.error || 'Error al agregar al carrito')
+    }
   }
 
   if (loading) return <div className="loading">Cargando producto...</div>
@@ -120,7 +120,7 @@ export default function ProductDetail() {
               {product.description}
             </p>
             <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '1rem 0' }} />
-            <p className="detail-price">${product.price.toFixed(2)}</p>
+            <p className="detail-price">${parseFloat(product.price).toFixed(2)}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <strong>Stock:</strong>
               <span className={`badge ${product.stock > 0 ? 'badge-success' : 'badge-danger'}`}>
@@ -146,15 +146,26 @@ export default function ProductDetail() {
             />
           </div>
 
-          <button
-            className="btn btn-success"
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
-          >
-            <ShoppingCart size={20} />
-            Agregar al carrito
-          </button>
+          {isAuthenticated ? (
+            <button
+              className="btn btn-success"
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
+            >
+              <ShoppingCart size={20} />
+              Agregar al carrito
+            </button>
+          ) : (
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate('/login')}
+              style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
+            >
+              <ShoppingCart size={20} />
+              Inicia sesión para comprar
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -14,11 +14,6 @@ export default function Cart() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!customerName || !customerEmail) {
-      setMessage({ type: 'error', text: 'Por favor completa todos los campos requeridos.' })
-      return
-    }
-
     if (items.length === 0) {
       setMessage({ type: 'error', text: 'El carrito está vacío. Agrega productos antes de continuar.' })
       return
@@ -27,27 +22,23 @@ export default function Cart() {
     setLoading(true)
     try {
       const orderData = {
-        customer_name: customerName,
-        customer_email: customerEmail,
-        notes,
+        total_amount: totalAmount,
         items: items.map((item) => ({
-          product_id: item.product_id,
+          product_id: item.productId,
           quantity: item.quantity,
         })),
       }
       const response = await orderService.create(orderData)
+      const amount = parseFloat(response.data.data.total_amount)
       setMessage({
         type: 'success',
-        text: `Pedido #${response.data.data.id} creado con éxito. Total: $${response.data.data.total_amount.toFixed(2)}`,
+        text: `Pedido #${response.data.data.id} creado con éxito. Total: $${amount.toFixed(2)}`,
       })
-      setCustomerName('')
-      setCustomerEmail('')
-      setNotes('')
-      clearCart()
+      await clearCart()
     } catch (err) {
       setMessage({
         type: 'error',
-        text: 'Error: ' + (err.response?.data?.detail || err.message),
+        text: 'Error: ' + (err.response?.data?.error || err.message),
       })
     } finally {
       setLoading(false)
@@ -84,42 +75,41 @@ export default function Cart() {
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item) => (
-                      <tr key={item.product_id}>
-                        <td>
-                          <strong>{item.name}</strong>
-                          {item.category && (
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                              {item.category}
-                            </p>
-                          )}
-                        </td>
-                        <td>${item.price.toFixed(2)}</td>
-                        <td>
-                          <input
-                            type="number"
-                            min="1"
-                            max={item.stock}
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateQuantity(item.product_id, Math.max(1, parseInt(e.target.value) || 1))
-                            }
-                            className="form-input"
-                            style={{ width: '4.5rem' }}
-                          />
-                        </td>
-                        <td><strong>${(item.price * item.quantity).toFixed(2)}</strong></td>
-                        <td>
-                          <button
-                            className="btn btn-danger btn-small"
-                            onClick={() => removeItem(item.product_id)}
-                          >
-                            <Trash2 size={16} />
-                            Quitar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {items.map((item) => {
+                      const product = item.Product || {}
+                      const price = parseFloat(product.price || 0)
+                      return (
+                        <tr key={item.id}>
+                          <td>
+                            <strong>{product.name}</strong>
+                          </td>
+                          <td>${price.toFixed(2)}</td>
+                          <td>
+                            <input
+                              type="number"
+                              min="1"
+                              max={product.stock || 1}
+                              value={item.quantity}
+                              onChange={(e) =>
+                                updateQuantity(item.id, Math.max(1, parseInt(e.target.value) || 1))
+                              }
+                              className="form-input"
+                              style={{ width: '4.5rem' }}
+                            />
+                          </td>
+                          <td><strong>${(price * item.quantity).toFixed(2)}</strong></td>
+                          <td>
+                            <button
+                              className="btn btn-danger btn-small"
+                              onClick={() => removeItem(item.id)}
+                            >
+                              <Trash2 size={16} />
+                              Quitar
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
