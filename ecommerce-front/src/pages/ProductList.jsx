@@ -1,32 +1,26 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2, ShoppingCart, Eye, AlertCircle, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package } from 'lucide-react'
+import { Trash2, ShoppingCart, Eye, AlertCircle, Edit, Plus, ArrowRight, Package } from 'lucide-react'
 import { productService, categoryService } from '../services/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import ProductFormModal from '../components/modals/ProductFormModal'
+import MoveProductModal from '../components/modals/MoveProductModal'
+import { getCategoryIcon } from '../components/modals/CategoryFormModal'
+import DataTable from '../components/DataTable'
 
 const LIMIT = 20
 
-const getCategoryIcon = (categoryName) => {
-  const iconMap = {
-    'electrónica': Smartphone,
-    'ropa': Shirt,
-    'alimentos': UtensilsCrossed,
-    'hogar': Home,
-    'deportes': Trophy,
-    'default': Package,
-  }
-  return iconMap[categoryName?.toLowerCase()] || iconMap.default
-}
-
-const CategoryIcon = ({ categoryName, size = 64, className = '' }) => {
-  const Icon = getCategoryIcon(categoryName)
+const CategoryIcon = ({ iconName, size = 64, className = '' }) => {
+  const Icon = getCategoryIcon(iconName)
   return <Icon size={size} className={className} strokeWidth={1.5} />
 }
 
 export default function ProductList() {
   const { addItem } = useCart()
   const { isAuthenticated, user } = useAuth()
+  const isAdmin = user?.role === 'admin'
+
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -35,8 +29,15 @@ export default function ProductList() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
 
+  const [showFormModal, setShowFormModal] = useState(false)
+  const [showMoveModal, setShowMoveModal] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+
   useEffect(() => {
     loadCategories()
+  }, [])
+
+  useEffect(() => {
     loadProducts()
   }, [selectedCategory, page])
 
@@ -66,14 +67,27 @@ export default function ProductList() {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      try {
-        await productService.delete(id)
-        loadProducts()
-      } catch (err) {
-        alert('Error al eliminar producto: ' + err.message)
-      }
+    if (!window.confirm('¿Eliminar este producto?')) return
+    try {
+      await productService.delete(id)
+      loadProducts()
+    } catch (err) {
+      alert('Error al eliminar: ' + (err.response?.data?.error || err.message))
     }
+  }
+
+  const handleProductSuccess = () => {
+    setShowFormModal(false)
+    setSelectedProduct(null)
+    loadCategories()
+    loadProducts()
+  }
+
+  const handleMoveSuccess = () => {
+    setShowMoveModal(false)
+    setSelectedProduct(null)
+    loadCategories()
+    loadProducts()
   }
 
   if (loading && page === 1) {
@@ -82,7 +96,15 @@ export default function ProductList() {
 
   return (
     <div>
-      <h1>Productos</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', paddingBottom: '0.75rem', borderBottom: '2px solid var(--border)' }}>
+        <h1 style={{ margin: 0, border: 'none', padding: 0 }}>Productos</h1>
+        {isAdmin && (
+          <button className="btn btn-primary" onClick={() => { setSelectedProduct(null); setShowFormModal(true) }}>
+            <Plus size={18} />
+            Agregar Producto
+          </button>
+        )}
+      </div>
 
       <div className="filter-bar">
         <button
@@ -92,7 +114,7 @@ export default function ProductList() {
           Todas
         </button>
         {categories.map((cat) => {
-          const Icon = getCategoryIcon(cat.name)
+          const Icon = getCategoryIcon(cat.icon)
           return (
             <button
               key={cat.id}
@@ -108,9 +130,66 @@ export default function ProductList() {
 
       {error && <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{error}</div>}
 
-      {products.length === 0 ? (
+      {isAdmin ? (
+        <DataTable
+          data={products}
+          empty="No hay productos disponibles"
+          columns={[
+            {
+              key: 'id',
+              header: 'ID',
+              width: '60px',
+              render: (p) => <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{p.id}</span>,
+            },
+            { key: 'name', header: 'Nombre', render: (p) => <strong>{p.name}</strong> },
+            { key: 'sku', header: 'SKU' },
+            { key: 'price', header: 'Precio', render: (p) => `$${parseFloat(p.price).toFixed(2)}` },
+            {
+              key: 'stock',
+              header: 'Stock',
+              render: (p) => (
+                <span className={`badge ${p.stock > 0 ? 'badge-success' : 'badge-danger'}`}>
+                  {p.stock > 0 ? p.stock : 'Agotado'}
+                </span>
+              ),
+            },
+            {
+              key: 'category',
+              header: 'Categoría',
+              render: (p) => {
+                if (!p.category) return <span style={{ color: 'var(--text-muted)' }}>—</span>
+                const CatIcon = getCategoryIcon(p.category.icon)
+                return (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <CatIcon size={16} strokeWidth={1.5} />
+                    {p.category.name}
+                  </span>
+                )
+              },
+            },
+            {
+              key: 'actions',
+              header: 'Acciones',
+              render: (p) => (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button className="btn btn-outline btn-small" title="Editar" onClick={() => { setSelectedProduct(p); setShowFormModal(true) }}>
+                    <Edit size={14} />
+                  </button>
+                  <button className="btn btn-outline btn-small" title="Mover categoría" onClick={() => { setSelectedProduct(p); setShowMoveModal(true) }}>
+                    <ArrowRight size={14} />
+                  </button>
+                  <button className="btn btn-danger btn-small" title="Eliminar" onClick={() => handleDelete(p.id)}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ),
+            },
+          ]}
+        />
+      ) : products.length === 0 ? (
         <div className="empty-state">No hay productos disponibles</div>
       ) : (
+        /* Usuario: vista de cards */
         <div className="grid">
           {products.map((product) => (
             <div key={product.id} className="card">
@@ -119,12 +198,19 @@ export default function ProductList() {
                   <img src={product.image_url} alt={product.name} className="card-image-img" />
                 ) : (
                   <div className="card-image-icon">
-                    <CategoryIcon categoryName={product.category?.name} size={80} />
+                    <CategoryIcon iconName={product.category?.icon} size={80} />
                   </div>
                 )}
               </div>
               <div className="card-body">
-                <p className="card-category">{product.category?.name}</p>
+                <p className="card-category">
+                  {product.category && (
+                    <>
+                      {(() => { const I = getCategoryIcon(product.category.icon); return <I size={14} style={{ display: 'inline', marginRight: '0.3rem', verticalAlign: 'middle' }} /> })()}
+                      {product.category.name}
+                    </>
+                  )}
+                </p>
                 <h3 className="card-title">{product.name}</h3>
                 <p className="card-description">{product.description}</p>
                 <p className="card-price">${parseFloat(product.price).toFixed(2)}</p>
@@ -143,10 +229,8 @@ export default function ProductList() {
                     <button
                       className="btn btn-success btn-small"
                       disabled={product.stock === 0}
-                      onClick={() =>
-                        addItem(product.id, 1)
-                      }
-                  >
+                      onClick={() => addItem(product.id, 1)}
+                    >
                       <ShoppingCart size={16} />
                       Agregar
                     </button>
@@ -155,14 +239,6 @@ export default function ProductList() {
                       <ShoppingCart size={16} />
                       Ingresar
                     </Link>
-                  )}
-                  {user?.role === 'admin' && (
-                    <button
-                      className="btn btn-danger btn-small"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   )}
                 </div>
               </div>
@@ -173,22 +249,32 @@ export default function ProductList() {
 
       {!loading && products.length > 0 && (
         <div className="pagination">
-          <button
-            className="btn btn-outline"
-            onClick={() => setPage(page > 1 ? page - 1 : 1)}
-            disabled={page === 1}
-          >
+          <button className="btn btn-outline" onClick={() => setPage(page > 1 ? page - 1 : 1)} disabled={page === 1}>
             ← Anterior
           </button>
           <span className="pagination-info">Página {page}</span>
-          <button
-            className="btn btn-outline"
-            onClick={() => setPage(page + 1)}
-            disabled={!hasMore}
-          >
+          <button className="btn btn-outline" onClick={() => setPage(page + 1)} disabled={!hasMore}>
             Siguiente →
           </button>
         </div>
+      )}
+
+      {showFormModal && (
+        <ProductFormModal
+          product={selectedProduct}
+          categories={categories}
+          onSuccess={handleProductSuccess}
+          onClose={() => { setShowFormModal(false); setSelectedProduct(null) }}
+        />
+      )}
+
+      {showMoveModal && (
+        <MoveProductModal
+          product={selectedProduct}
+          categories={categories}
+          onSuccess={handleMoveSuccess}
+          onClose={() => { setShowMoveModal(false); setSelectedProduct(null) }}
+        />
       )}
     </div>
   )

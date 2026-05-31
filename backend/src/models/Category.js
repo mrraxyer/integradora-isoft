@@ -18,6 +18,11 @@ const Category = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    icon: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: 'Package',
+    },
   },
   {
     tableName: 'categories',
