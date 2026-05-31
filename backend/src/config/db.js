@@ -10,8 +10,13 @@ if (process.env.NODE_ENV === 'test') {
     logging: false,
   });
 } else {
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+  sequelize = new Sequelize({
     dialect: 'postgres',
+    host: process.env.DB_HOST || 'postgres',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    database: process.env.DB_NAME || 'ecommerce',
+    username: process.env.DB_USER || 'ecommerce_user',
+    password: process.env.DB_PASSWORD,
     logging: false,
   });
 }
