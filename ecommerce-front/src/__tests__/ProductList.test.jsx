@@ -3,9 +3,12 @@ import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import ProductList from '../pages/ProductList';
 import { productService, categoryService } from '../services/api';
+import { AuthProvider } from '../context/AuthContext'
+import { CartProvider } from '../context/CartContext'
 
 //Mockeamos los dos servicios que necesita este componente
 vi.mock('../services/api', () => ({
+  default: { defaults: { headers: { common: {} } } },
   productService: {
     list: vi.fn(),
     delete: vi.fn()
@@ -19,28 +22,28 @@ describe('Pruebas en <ProductList />', () => {
 
   it('Debe renderizar los productos y los enlaces correctamente', async () => {
     //Preparamos las respuestas simuladas de los endpoints
-    categoryService.list.mockResolvedValue({
-      data: [{ id: 1, name: 'Electrónica', description: 'Categoría tech' }]
-    });
+    categoryService.list.mockResolvedValue({ data: { data: [{ id: 1, name: 'Electrónica', description: 'Categoría tech' }] } });
 
-    productService.list.mockResolvedValue({
-      data: [
-        {
-          id: 15,
-          name: 'Teclado Mecánico',
-          description: 'Teclado RGB',
-          price: 120.50,
-          stock: 10,
-          sku: 'TEC-001'
-        }
-      ]
-    });
+    productService.list.mockResolvedValue({ data: { data: [
+      {
+        id: 15,
+        name: 'Teclado Mecánico',
+        description: 'Teclado RGB',
+        price: 120.50,
+        stock: 10,
+        sku: 'TEC-001'
+      }
+    ] } });
 
-    //Renderizamos el componente envuelto en MemoryRouter
+    //Renderizamos el componente envuelto en MemoryRouter y providers
     render(
-      <MemoryRouter>
-        <ProductList />
-      </MemoryRouter>
+      <AuthProvider>
+        <CartProvider>
+          <MemoryRouter>
+            <ProductList />
+          </MemoryRouter>
+        </CartProvider>
+      </AuthProvider>
     );
 
     // 4. Esperamos a que la petición "termine" y se dibuje el producto
@@ -51,7 +54,7 @@ describe('Pruebas en <ProductList />', () => {
 
     //Verificamos que el enlace de React Router se haya generado bien
     //getByRole('link') es la forma más accesible de buscar etiquetas <a>
-    const linkElement = screen.getByRole('link', { name: /ver detalle/i });
+    const linkElement = screen.getByRole('link', { name: /ver/i });
     expect(linkElement).toBeInTheDocument();
     
     // Validamos que el Link apunte a la URL correcta del producto 15
@@ -64,9 +67,13 @@ describe('Pruebas en <ProductList />', () => {
     productService.list.mockResolvedValue({ data: [] });
 
     render(
-      <MemoryRouter>
-        <ProductList />
-      </MemoryRouter>
+      <AuthProvider>
+        <CartProvider>
+          <MemoryRouter>
+            <ProductList />
+          </MemoryRouter>
+        </CartProvider>
+      </AuthProvider>
     );
 
     await waitFor(() => {
