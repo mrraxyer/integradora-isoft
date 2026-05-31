@@ -10,7 +10,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ecommerce_user} -d ${DB_NAME:-ecommerce}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-ecommerce_user} -d ${DB_NAME:-ecommerce}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,8 +53,8 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL}
         VITE_APP_NAME: ${VITE_APP_NAME:-Ecommerce}
-    ports:
-      - "5173:80"
+    expose:
+      - "80"
     depends_on:
       - backend
     networks:
