@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { LogIn, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -8,6 +8,10 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from || '/'
+
+  const emailRef = useRef(null)
+  const passwordRef = useRef(null)
+  const submitRef = useRef(null)
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [fieldErrors, setFieldErrors] = useState({})
@@ -28,6 +32,17 @@ export default function Login() {
     setServerError(null)
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+
+    if (e.target === emailRef.current && !fieldErrors.email) {
+      passwordRef.current?.focus()
+    } else if (e.target === passwordRef.current) {
+      submitRef.current?.click()
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const errors = validate()
@@ -46,16 +61,22 @@ export default function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2 className="auth-title">Iniciar sesión</h2>
+        <h1 className="auth-title">Iniciar sesión</h1>
 
-        {serverError && <div className="auth-error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{serverError}</div>}
+        {serverError && (
+          <div className="auth-error" role="alert" aria-live="assertive">
+            <AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} aria-hidden="true" />
+            {serverError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label htmlFor="email" className="form-label">
-              Correo electrónico
+              Correo electrónico<span aria-label="requerido">*</span>
             </label>
             <input
+              ref={emailRef}
               id="email"
               name="email"
               type="email"
@@ -63,16 +84,25 @@ export default function Login() {
               className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
               value={form.email}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="tu@correo.com"
+              aria-required="true"
+              aria-invalid={!!fieldErrors.email}
+              aria-describedby={fieldErrors.email ? 'email-error' : undefined}
             />
-            {fieldErrors.email && <span className="field-error">{fieldErrors.email}</span>}
+            {fieldErrors.email && (
+              <span id="email-error" className="field-error" role="alert">
+                {fieldErrors.email}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              Contraseña
+              Contraseña<span aria-label="requerida">*</span>
             </label>
             <input
+              ref={passwordRef}
               id="password"
               name="password"
               type="password"
@@ -80,13 +110,27 @@ export default function Login() {
               className={`form-input ${fieldErrors.password ? 'input-error' : ''}`}
               value={form.password}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="••••••••"
+              aria-required="true"
+              aria-invalid={!!fieldErrors.password}
+              aria-describedby={fieldErrors.password ? 'password-error' : undefined}
             />
-            {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
+            {fieldErrors.password && (
+              <span id="password-error" className="field-error" role="alert">
+                {fieldErrors.password}
+              </span>
+            )}
           </div>
 
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
-            <LogIn size={18} />
+          <button
+            ref={submitRef}
+            type="submit"
+            className="btn btn-primary auth-submit"
+            disabled={loading}
+            aria-label={loading ? 'Ingresando cuenta' : 'Ingresar con datos proporcionados'}
+          >
+            <LogIn size={18} aria-hidden="true" />
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
