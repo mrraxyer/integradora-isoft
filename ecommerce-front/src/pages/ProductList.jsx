@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2, ShoppingCart, Eye, AlertCircle, Edit, Plus, ArrowRight, Package } from 'lucide-react'
+import { Trash2, ShoppingCart, Eye, AlertCircle, Edit, Plus, ArrowRight, Package, Search, X } from 'lucide-react'
 import { productService, categoryService } from '../services/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -29,6 +29,9 @@ export default function ProductList() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
 
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+
   const [showFormModal, setShowFormModal] = useState(false)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -38,8 +41,16 @@ export default function ProductList() {
   }, [])
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput)
+      setPage(1)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
+  useEffect(() => {
     loadProducts()
-  }, [selectedCategory, page])
+  }, [selectedCategory, page, searchQuery])
 
   const loadCategories = async () => {
     try {
@@ -55,7 +66,7 @@ export default function ProductList() {
     setError(null)
     try {
       const skip = (page - 1) * LIMIT
-      const response = await productService.list(skip, LIMIT, selectedCategory)
+      const response = await productService.list(skip, LIMIT, selectedCategory, searchQuery || null)
       const data = response.data?.data ?? []
       setProducts(data)
       setHasMore(data.length === LIMIT)
@@ -102,6 +113,25 @@ export default function ProductList() {
           <button className="btn btn-primary" onClick={() => { setSelectedProduct(null); setShowFormModal(true) }}>
             <Plus size={18} />
             Agregar Producto
+          </button>
+        )}
+      </div>
+
+      <div style={{ position: 'relative', marginBottom: '1rem' }}>
+        <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+        <input
+          type="text"
+          placeholder="Buscar productos..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          style={{ width: '100%', paddingLeft: '2.25rem', paddingRight: searchInput ? '2.25rem' : '0.75rem', paddingTop: '0.5rem', paddingBottom: '0.5rem', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '0.95rem', background: 'var(--surface)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' }}
+        />
+        {searchInput && (
+          <button
+            onClick={() => setSearchInput('')}
+            style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+          >
+            <X size={16} />
           </button>
         )}
       </div>

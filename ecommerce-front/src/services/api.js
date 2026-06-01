@@ -34,10 +34,11 @@ api.interceptors.response.use(
 
 // Express.js backend using pagination with page/limit
 export const productService = {
-  list: (skip = 0, limit = 20, categoryId = null) => {
+  list: (skip = 0, limit = 20, categoryId = null, search = null) => {
     const page = Math.floor(skip / limit) + 1
     const params = { page, limit }
     if (categoryId !== null) params.category = categoryId
+    if (search) params.search = search
     return api.get('/products', { params })
   },
   get: (id) => api.get(`/products/${id}`),
