@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, Loader2, Truck, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Clock, Loader2, Truck, CheckCircle, XCircle, AlertCircle, Eye, X, ShoppingBag } from 'lucide-react'
 import { orderService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import DataTable from '../components/DataTable'
@@ -38,6 +38,8 @@ export default function OrderList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [statusFilter, setStatusFilter] = useState(null)
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
 
   useEffect(() => {
     loadOrders()
@@ -53,6 +55,19 @@ export default function OrderList() {
       setError('Error al cargar órdenes: ' + err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const openDetail = async (orderId) => {
+    setDetailLoading(true)
+    setSelectedOrder(null)
+    try {
+      const response = await orderService.get(orderId)
+      setSelectedOrder(response.data?.data)
+    } catch (err) {
+      setError('Error al cargar detalle: ' + err.message)
+    } finally {
+      setDetailLoading(false)
     }
   }
 
@@ -150,8 +165,106 @@ export default function OrderList() {
               return d ? new Date(d).toLocaleDateString('es-MX') : 'N/A'
             },
           },
+          {
+            key: 'actions',
+            header: '',
+            width: '60px',
+            render: (o) => (
+              <button
+                className="btn btn-small"
+                title="Ver detalle"
+                onClick={() => openDetail(o.id)}
+                style={{ padding: '0.3rem 0.5rem' }}
+              >
+                <Eye size={15} />
+              </button>
+            ),
+          },
         ]}
       />
+
+      {(detailLoading || selectedOrder) && (
+        <div className="modal-overlay" onClick={() => { if (!detailLoading) setSelectedOrder(null) }}>
+          <div className="modal" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <ShoppingBag size={18} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                {selectedOrder ? `Detalle de Orden #${selectedOrder.id}` : 'Cargando...'}
+              </h2>
+              <button className="modal-close" onClick={() => setSelectedOrder(null)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {detailLoading && <div className="loading">Cargando detalle...</div>}
+
+              {selectedOrder && (() => {
+                const Icon = STATUS_ICONS[selectedOrder.status]
+                const d = selectedOrder.createdAt || selectedOrder.created_at
+                const items = selectedOrder.items || []
+                return (
+                  <>
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      {d && <span>Fecha: <strong style={{ color: 'var(--text)' }}>{new Date(d).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}</strong></span>}
+                      <span>Estado: <span className={`badge ${STATUS_BADGE[selectedOrder.status] || 'badge-warning'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', verticalAlign: 'middle' }}>{Icon && <Icon size={13} />}{STATUS_LABELS[selectedOrder.status] || selectedOrder.status}</span></span>
+                      {isAdmin && selectedOrder.user && (
+                        <span>Cliente: <strong style={{ color: 'var(--text)' }}>{selectedOrder.user.name} ({selectedOrder.user.email})</strong></span>
+                      )}
+                    </div>
+
+                    {items.length === 0 ? (
+                      <div className="empty-state">Sin productos registrados.</div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="table">
+                          <thead>
+                            <tr>
+                              <th>Producto</th>
+                              <th style={{ textAlign: 'center' }}>Cantidad</th>
+                              <th style={{ textAlign: 'right' }}>Precio unit.</th>
+                              <th style={{ textAlign: 'right' }}>Subtotal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items.map((item, i) => {
+                              const price = item.product_price ?? item.price ?? null
+                              const subtotal = price !== null ? price * item.quantity : null
+                              return (
+                                <tr key={i}>
+                                  <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                      {item.product_image && (
+                                        <img src={item.product_image} alt={item.product_name} style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 'var(--radius)' }} />
+                                      )}
+                                      <span>{item.product_name || `Producto #${item.product_id}`}</span>
+                                    </div>
+                                  </td>
+                                  <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                                  <td style={{ textAlign: 'right' }}>{price !== null ? `$${price.toFixed(2)}` : '—'}</td>
+                                  <td style={{ textAlign: 'right' }}><strong>{subtotal !== null ? `$${subtotal.toFixed(2)}` : '—'}</strong></td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    <div style={{ textAlign: 'right', marginTop: '1rem', fontSize: '1rem' }}>
+                      Total: <strong style={{ fontSize: '1.15rem' }}>${parseFloat(selectedOrder.total_amount).toFixed(2)}</strong>
+                    </div>
+                  </>
+                )
+              })()}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn" onClick={() => setSelectedOrder(null)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

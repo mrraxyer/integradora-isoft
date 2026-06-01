@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Product = require('../models/Product');
 const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 /**
@@ -129,7 +130,25 @@ router.get('/:id', verifyToken, async (req, res) => {
     if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Forbidden. Can only view your own orders.' });
     }
-    res.json({ data: order });
+
+    const items = order.items || [];
+    const productIds = [...new Set(items.map((i) => i.product_id).filter(Boolean))];
+    const products = productIds.length
+      ? await Product.findAll({ where: { id: productIds }, attributes: ['id', 'name', 'price', 'image_url'] })
+      : [];
+    const productMap = Object.fromEntries(products.map((p) => [p.id, p]));
+
+    const enrichedItems = items.map((item) => {
+      const product = productMap[item.product_id] || null;
+      return {
+        ...item,
+        product_name: product?.name || 'Producto eliminado',
+        product_price: product ? parseFloat(product.price) : null,
+        product_image: product?.image_url || null,
+      };
+    });
+
+    res.json({ data: { ...order.toJSON(), items: enrichedItems } });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
