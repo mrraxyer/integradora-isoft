@@ -356,8 +356,12 @@ router.post(
   validateWithZod(productZodSchema),
   async (req, res) => {
     try {
-      const product = await Product.create(req.body);
-      res.status(201).json({ data: formatProduct(product) });
+      const { category, ...rest } = req.body;
+      const data = { ...rest, categoryId: category ? parseInt(category, 10) : null };
+      const product = await Product.create(data);
+      const Category = require('../models/Category');
+      const full = await Product.findByPk(product.id, { include: [{ model: Category, as: 'category' }] });
+      res.status(201).json({ data: formatProduct(full) });
     } catch (err) {
       if (err.name === 'SequelizeUniqueConstraintError') {
         return res.status(409).json({ error: 'A product with this SKU already exists' });
@@ -408,10 +412,13 @@ router.put(
   validateWithZod(productZodSchema),
   async (req, res) => {
     try {
+      const Category = require('../models/Category');
       const product = await Product.findByPk(req.params.id);
       if (!product) return res.status(404).json({ error: 'Product not found' });
-      await product.update(req.body);
-      res.json({ data: formatProduct(product) });
+      const { category, ...rest } = req.body;
+      await product.update({ ...rest, categoryId: category ? parseInt(category, 10) : null });
+      const full = await Product.findByPk(product.id, { include: [{ model: Category, as: 'category' }] });
+      res.json({ data: formatProduct(full) });
     } catch (err) {
       if (err.name === 'SequelizeUniqueConstraintError') {
         return res.status(409).json({ error: 'A product with this SKU already exists' });
