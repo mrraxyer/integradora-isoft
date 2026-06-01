@@ -24,7 +24,7 @@ export default function ProductFormModal({ product, categories, onSuccess, onClo
         price: product.price,
         stock: product.stock,
         sku: product.sku,
-        category: product.categoryId || '',
+        category: product.category?.id || '',
         image_url: product.image_url || '',
       })
       setImgError(false)
