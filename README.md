@@ -2,6 +2,108 @@
 
 Aplicación fullstack de ecommerce con Express.js (Backend), React + Vite (Frontend), y PostgreSQL (Base de Datos).
 
+## Tecnologías
+
+### Backend
+| Tecnología        | Versión | Uso                             |
+| ----------------- | ------- | ------------------------------- |
+| Node.js           | ≥ 20.19 | Runtime                         |
+| Express.js        | 4.18.2  | Framework REST API              |
+| PostgreSQL        | 16      | Base de datos relacional        |
+| Sequelize         | 6.35.1  | ORM                             |
+| JSON Web Token    | 9.0.3   | Autenticación (tokens 7 días)   |
+| bcryptjs          | 3.0.3   | Hash de contraseñas             |
+| express-validator | 7.0.1   | Validación de entrada           |
+| Zod               | 3.22.4  | Validación de schemas           |
+| Swagger/OpenAPI   | —       | Documentación automática de API |
+| Morgan            | —       | Logging de requests HTTP        |
+| Jest + Supertest  | 29.7.0  | Testing                         |
+| Nodemon           | —       | Auto-reload en desarrollo       |
+
+### Frontend
+| Tecnología               | Versión | Uso                              |
+| ------------------------ | ------- | -------------------------------- |
+| React                    | 19.2.6  | UI framework                     |
+| Vite                     | 8.0.12  | Build tool y dev server          |
+| React Router DOM         | 6.20.1  | Enrutamiento del cliente         |
+| Axios                    | 1.6.2   | Cliente HTTP con interceptor JWT |
+| Zod                      | 4.4.3   | Validación de formularios        |
+| Lucide React             | 1.17.0  | Iconografía                      |
+| Vitest + Testing Library | 4.1.7   | Testing                          |
+| ESLint                   | 10.3.0  | Linting                          |
+
+### Infraestructura
+| Tecnología     | Uso                            |
+| -------------- | ------------------------------ |
+| Docker         | Contenedorización de servicios |
+| Docker Compose | Orquestación multi-servicio    |
+
+---
+
+## Arquitectura
+
+El proyecto es un **monorepo fullstack** con 3 servicios contenerizados y comunicación a través de una red Docker interna.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Docker Network                       │
+│                                                         │
+│  ┌──────────────┐    HTTP/JWT    ┌──────────────────┐   │
+│  │   Frontend   │ ─────────────► │     Backend      │   │
+│  │ React + Vite │   Axios        │   Express.js     │   │
+│  │  :5173       │   Bearer Token │   :3000          │   │
+│  └──────────────┘                └────────┬─────────┘   │
+│                                           │ Sequelize   │
+│                                  ┌────────▼─────────┐   │
+│                                  │   PostgreSQL 16   │  │
+│                                  │   :5432           │  │
+│                                  └───────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Capas del Backend
+
+```
+src/
+├── routes/       ← Endpoints REST, protección por rol
+├── middleware/   ← verifyToken, requireAdmin, validate
+├── models/       ← Entidades Sequelize (User, Product, Category, Order, CartItem)
+├── config/       ← DB, asociaciones, Swagger
+└── utils/        ← Helpers compartidos
+```
+
+### Capas del Frontend
+
+```
+src/
+├── pages/        ← Vistas por ruta (ProductList, Cart, Orders…)
+├── components/   ← Componentes reutilizables (DataTable, modals, Header)
+├── context/      ← Estado global (AuthContext, CartContext)
+├── services/     ← Capa de API (Axios + interceptor 401)
+└── lib/          ← Schemas Zod
+```
+
+### Flujo de autenticación
+
+```
+Login ──► POST /api/auth/login
+           ──► JWT token (payload: id, role, exp)
+                ──► localStorage
+                     ──► Axios Authorization: Bearer <token>
+                          ──► middleware verifyToken
+                               ──► requireAdmin (rutas admin)
+```
+
+### Modelo de datos
+
+```
+User ─────< Order >───── OrderItem >───── Product >───── Category
+ │                                           │
+ └──────────────< CartItem >─────────────────┘
+```
+
+---
+
 ## Componentes Implementados
 
 - Backend Express.js con rutas CRUD funcionales
