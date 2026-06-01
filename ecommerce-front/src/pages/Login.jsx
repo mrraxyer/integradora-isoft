@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { LogIn, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { loginSchema, flattenZodErrors } from '../lib/schemas'
 
 export default function Login() {
   const { login, loading } = useAuth()
@@ -16,14 +17,6 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [fieldErrors, setFieldErrors] = useState({})
   const [serverError, setServerError] = useState(null)
-
-  const validate = () => {
-    const errors = {}
-    if (!form.email) errors.email = 'El correo es obligatorio'
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errors.email = 'Correo inválido'
-    if (!form.password) errors.password = 'La contraseña es obligatoria'
-    return errors
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -45,16 +38,16 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const errors = validate()
-    if (Object.keys(errors).length) {
-      setFieldErrors(errors)
+    const result = loginSchema.safeParse(form)
+    if (!result.success) {
+      setFieldErrors(flattenZodErrors(result.error))
       return
     }
-    const result = await login(form.email, form.password)
-    if (result.ok) {
+    const authResult = await login(form.email, form.password)
+    if (authResult.ok) {
       navigate(from, { replace: true })
     } else {
-      setServerError(result.error)
+      setServerError(authResult.error)
     }
   }
 

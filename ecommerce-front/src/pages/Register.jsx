@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserPlus, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { registerSchema, flattenZodErrors } from '../lib/schemas'
 
 export default function Register() {
   const { register, loading } = useAuth()
@@ -16,18 +17,6 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
   const [fieldErrors, setFieldErrors] = useState({})
   const [serverError, setServerError] = useState(null)
-
-  const validate = () => {
-    const errors = {}
-    if (!form.name || form.name.trim().length < 2)
-      errors.name = 'El nombre debe tener al menos 2 caracteres'
-    if (!form.email) errors.email = 'El correo es obligatorio'
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errors.email = 'Correo inválido'
-    if (!form.password || form.password.length < 6)
-      errors.password = 'La contraseña debe tener al menos 6 caracteres'
-    if (form.password !== form.confirm) errors.confirm = 'Las contraseñas no coinciden'
-    return errors
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -53,16 +42,16 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const errors = validate()
-    if (Object.keys(errors).length) {
-      setFieldErrors(errors)
+    const result = registerSchema.safeParse(form)
+    if (!result.success) {
+      setFieldErrors(flattenZodErrors(result.error))
       return
     }
-    const result = await register(form.name.trim(), form.email, form.password)
-    if (result.ok) {
+    const authResult = await register(form.name.trim(), form.email, form.password)
+    if (authResult.ok) {
       navigate('/', { replace: true })
     } else {
-      setServerError(result.error)
+      setServerError(authResult.error)
     }
   }
 

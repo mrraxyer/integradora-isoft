@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Smartphone, Shirt, UtensilsCrossed, Home, Trophy, Package, Car, Dumbbell, Book, Gem, Music, Baby, Wrench, Gamepad2, Coffee, Leaf, Camera, Tv, PawPrint, Palette } from 'lucide-react'
 import { categoryService } from '../../services/api'
+import { categorySchema, flattenZodErrors } from '../../lib/schemas'
 
 export const CATEGORY_ICONS = [
   { name: 'Package',          label: 'General',        Icon: Package },
@@ -32,6 +33,7 @@ export function getCategoryIcon(iconName) {
 export default function CategoryFormModal({ category, onSuccess, onClose }) {
   const [formData, setFormData] = useState({ name: '', description: '', icon: 'Package' })
   const [error, setError] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -41,22 +43,30 @@ export default function CategoryFormModal({ category, onSuccess, onClose }) {
         description: category.description || '',
         icon: category.icon || 'Package',
       })
+      setFieldErrors({})
     }
   }, [category])
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const validation = categorySchema.safeParse(formData)
+    if (!validation.success) {
+      setFieldErrors(flattenZodErrors(validation.error))
+      return
+    }
     setError(null)
     setLoading(true)
     try {
       if (category) {
-        await categoryService.update(category.id, formData)
+        await categoryService.update(category.id, validation.data)
       } else {
-        await categoryService.create(formData)
+        await categoryService.create(validation.data)
       }
       onSuccess()
     } catch (err) {
@@ -101,7 +111,8 @@ export default function CategoryFormModal({ category, onSuccess, onClose }) {
 
             <div className="form-group">
               <label className="form-label">Nombre *</label>
-              <input name="name" type="text" value={formData.name} onChange={handleChange} required className="form-input" placeholder="Ej: Electrónica" />
+              <input name="name" type="text" value={formData.name} onChange={handleChange} className={`form-input ${fieldErrors.name ? 'input-error' : ''}`} placeholder="Ej: Electrónica" />
+              {fieldErrors.name && <span className="field-error" role="alert">{fieldErrors.name}</span>}
             </div>
 
             <div className="form-group">

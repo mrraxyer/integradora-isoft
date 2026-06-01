@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, ImageOff } from 'lucide-react'
 import { productService } from '../../services/api'
+import { productSchema, flattenZodErrors } from '../../lib/schemas'
 
 export default function ProductFormModal({ product, categories, onSuccess, onClose }) {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function ProductFormModal({ product, categories, onSuccess, onClo
   })
   const [imgError, setImgError] = useState(false)
   const [error, setError] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -21,27 +23,35 @@ export default function ProductFormModal({ product, categories, onSuccess, onClo
       setFormData({
         name: product.name,
         description: product.description || '',
-        price: product.price,
-        stock: product.stock,
+        price: String(product.price),
+        stock: String(product.stock),
         sku: product.sku,
         category: product.category?.id || '',
         image_url: product.image_url || '',
       })
       setImgError(false)
+      setFieldErrors({})
     }
   }, [product])
 
   const handleChange = (e) => {
-    if (e.target.name === 'image_url') setImgError(false)
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    if (name === 'image_url') setImgError(false)
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const validation = productSchema.safeParse(formData)
+    if (!validation.success) {
+      setFieldErrors(flattenZodErrors(validation.error))
+      return
+    }
     setError(null)
     setLoading(true)
     try {
-      const data = { ...formData, price: parseFloat(formData.price), stock: parseInt(formData.stock, 10) }
+      const data = validation.data
       if (product) {
         await productService.update(product.id, data)
       } else {
@@ -86,27 +96,32 @@ export default function ProductFormModal({ product, categories, onSuccess, onClo
 
             <div className="form-group">
               <label className="form-label">URL de imagen</label>
-              <input name="image_url" type="url" value={formData.image_url} onChange={handleChange} className="form-input" placeholder="https://ejemplo.com/imagen.jpg" />
+              <input name="image_url" type="url" value={formData.image_url} onChange={handleChange} className={`form-input ${fieldErrors.image_url ? 'input-error' : ''}`} placeholder="https://ejemplo.com/imagen.jpg" />
+              {fieldErrors.image_url && <span className="field-error" role="alert">{fieldErrors.image_url}</span>}
             </div>
 
             <div className="form-group">
               <label className="form-label">Nombre *</label>
-              <input name="name" type="text" value={formData.name} onChange={handleChange} required className="form-input" placeholder="Ej: Monitor 24 pulgadas" />
+              <input name="name" type="text" value={formData.name} onChange={handleChange} className={`form-input ${fieldErrors.name ? 'input-error' : ''}`} placeholder="Ej: Monitor 24 pulgadas" />
+              {fieldErrors.name && <span className="field-error" role="alert">{fieldErrors.name}</span>}
             </div>
 
             <div className="form-group">
               <label className="form-label">SKU *</label>
-              <input name="sku" type="text" value={formData.sku} onChange={handleChange} required className="form-input" placeholder="Ej: MON-24-001" />
+              <input name="sku" type="text" value={formData.sku} onChange={handleChange} className={`form-input ${fieldErrors.sku ? 'input-error' : ''}`} placeholder="Ej: MON-24-001" />
+              {fieldErrors.sku && <span className="field-error" role="alert">{fieldErrors.sku}</span>}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
                 <label className="form-label">Precio *</label>
-                <input name="price" type="number" value={formData.price} onChange={handleChange} required step="0.01" min="0" className="form-input" placeholder="0.00" />
+                <input name="price" type="number" value={formData.price} onChange={handleChange} step="0.01" min="0" className={`form-input ${fieldErrors.price ? 'input-error' : ''}`} placeholder="0.00" />
+                {fieldErrors.price && <span className="field-error" role="alert">{fieldErrors.price}</span>}
               </div>
               <div className="form-group">
                 <label className="form-label">Stock *</label>
-                <input name="stock" type="number" value={formData.stock} onChange={handleChange} required min="0" className="form-input" placeholder="0" />
+                <input name="stock" type="number" value={formData.stock} onChange={handleChange} min="0" className={`form-input ${fieldErrors.stock ? 'input-error' : ''}`} placeholder="0" />
+                {fieldErrors.stock && <span className="field-error" role="alert">{fieldErrors.stock}</span>}
               </div>
             </div>
 
