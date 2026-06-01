@@ -101,10 +101,6 @@ export default function ProductList() {
     loadProducts()
   }
 
-  if (loading && page === 1) {
-    return <div className="loading">Cargando productos...</div>
-  }
-
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', paddingBottom: '0.75rem', borderBottom: '2px solid var(--border)' }}>
@@ -160,7 +156,20 @@ export default function ProductList() {
 
       {error && <div className="error"><AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />{error}</div>}
 
-      {isAdmin ? (
+      {loading && page === 1 ? (
+        <div className="grid">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="card card-skeleton">
+              <div className="card-image card-skeleton-image" />
+              <div className="card-body">
+                <div className="skeleton-line skeleton-line-short" />
+                <div className="skeleton-line" />
+                <div className="skeleton-line skeleton-line-medium" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : isAdmin ? (
         <DataTable
           data={products}
           empty="No hay productos disponibles"

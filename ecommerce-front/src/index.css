@@ -52,6 +52,7 @@ body {
   width: 100%;
   margin: 2.5rem auto;
   padding: 0 1.5rem;
+  min-height: 600px;
 }
 
 /* ── Navbar ─────────────────────────────────────────────────────────── */
@@ -221,6 +222,34 @@ h2, h3 {
   opacity: 0.85;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
+
+@keyframes shimmer {
+  0% { background-position: -400px 0 }
+  100% { background-position: 400px 0 }
+}
+
+.card-skeleton {
+  pointer-events: none;
+}
+
+.card-skeleton-image {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite;
+  width: 100%;
+}
+
+.skeleton-line-short { width: 40% }
+.skeleton-line-medium { width: 65% }
 
 .product-icon {
   font-size: 4rem;
