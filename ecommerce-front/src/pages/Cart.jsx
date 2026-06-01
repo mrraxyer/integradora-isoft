@@ -21,7 +21,11 @@ export default function Cart() {
   }, [user])
 
   const outOfStockItems = items.filter((item) => (item.Product?.stock ?? 0) === 0)
+  const exceedsStockItems = items.filter(
+    (item) => (item.Product?.stock ?? 0) > 0 && item.quantity > (item.Product?.stock ?? 0)
+  )
   const hasOutOfStock = outOfStockItems.length > 0
+  const hasExceedsStock = exceedsStockItems.length > 0
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -33,6 +37,11 @@ export default function Cart() {
 
     if (hasOutOfStock) {
       setMessage({ type: 'error', text: 'Hay productos agotados en tu carrito. Elimínalos para continuar.' })
+      return
+    }
+
+    if (hasExceedsStock) {
+      setMessage({ type: 'error', text: 'La cantidad de algunos productos supera el stock disponible. Ajusta las cantidades para continuar.' })
       return
     }
 
@@ -103,6 +112,11 @@ export default function Cart() {
                             {stockEmpty && (
                               <span className="badge badge-danger" style={{ marginLeft: '0.5rem' }}>Agotado</span>
                             )}
+                            {!stockEmpty && item.quantity > (product.stock ?? 0) && (
+                              <span className="badge badge-danger" style={{ marginLeft: '0.5rem' }}>
+                                Máx. {product.stock}
+                              </span>
+                            )}
                           </td>
                           <td>${price.toFixed(2)}</td>
                           <td>
@@ -111,9 +125,11 @@ export default function Cart() {
                               min="1"
                               max={product.stock || 1}
                               value={item.quantity}
-                              onChange={(e) =>
-                                updateQuantity(item.id, Math.max(1, parseInt(e.target.value) || 1))
-                              }
+                              onChange={(e) => {
+                                const val = Math.max(1, parseInt(e.target.value) || 1)
+                                const capped = product.stock > 0 ? Math.min(product.stock, val) : val
+                                updateQuantity(item.id, capped)
+                              }}
                               className="form-input"
                               style={{ width: '4.5rem' }}
                               disabled={stockEmpty}
@@ -161,10 +177,16 @@ export default function Cart() {
                 Retira los productos agotados para poder completar tu compra.
               </div>
             )}
+            {hasExceedsStock && (
+              <div className="error" style={{ marginBottom: '1rem' }}>
+                <AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />
+                La cantidad de algunos productos supera el stock disponible. Ajusta las cantidades.
+              </div>
+            )}
             <button
               type="submit"
               className="btn btn-success"
-              disabled={loading || items.length === 0 || hasOutOfStock}
+              disabled={loading || items.length === 0 || hasOutOfStock || hasExceedsStock}
               style={{ width: '100%', padding: '0.85rem', fontSize: '1rem' }}
             >
               {loading ? 'Procesando...' : <>

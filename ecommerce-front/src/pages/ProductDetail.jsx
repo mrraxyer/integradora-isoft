@@ -52,6 +52,10 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (!product) return
+    if (quantity > product.stock) {
+      setError(`Solo hay ${product.stock} unidad(es) disponibles.`)
+      return
+    }
     const result = await addItem(product.id, quantity)
     if (result.ok) {
       setMessage(`Se agregaron ${quantity} unidad(es) de "${product.name}" al carrito.`)
@@ -139,7 +143,7 @@ export default function ProductDetail() {
               min="1"
               max={product.stock}
               value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) => setQuantity(Math.min(product.stock, Math.max(1, parseInt(e.target.value) || 1)))}
               className="form-input"
               style={{ maxWidth: '100px' }}
               disabled={product.stock === 0}
