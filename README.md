@@ -6,9 +6,21 @@ Aplicación fullstack de ecommerce con Express.js (Backend), React + Vite (Front
 
 - Backend Express.js con rutas CRUD funcionales
 - Modelos Sequelize (Producto, Categoría, Orden, Usuario, CartItem)
-- Validación con express-validator y Zod
+- Validación con express-validator y Zod (backend) y Zod (frontend)
+  - Schemas frontend: login, registro, producto, categoría
+  - Errores por campo con mensajes en español
 - Swagger/OpenAPI documentation automática
 - Frontend React con React Router
+  - Páginas: Login, Registro, Productos, Detalle, Categorías, Órdenes, Carrito
+  - Componente DataTable reutilizable para vistas admin
+  - Vista diferenciada por rol: cards (usuario) vs tabla (admin) en ProductList
+  - Modales de formulario con validación Zod
+    - ProductFormModal: crear/editar producto con preview de imagen
+    - CategoryFormModal: crear/editar categoría con selector de icono (lucide-react)
+    - MoveProductModal: reasignar producto a otra categoría
+  - Modal de detalle de orden con tabla de productos y subtotales
+  - Iconos de categoría con lucide-react en cards y filtros
+  - Interceptor Axios: auto-redirect a /login en respuesta 401
 - Servicios de API integrados
 - Seed data con productos de ejemplo
 - Docker Compose configurado
@@ -28,8 +40,9 @@ Aplicación fullstack de ecommerce con Express.js (Backend), React + Vite (Front
   - Protección de rutas y endpoints
   - Filtros específicos por rol
 - Búsqueda y filtros de productos
-  - Búsqueda por nombre/descripción
-  - Filtros por categoría, disponibilidad
+  - Búsqueda por nombre/descripción (backend)
+  - Filtro por categoría en frontend con botones
+  - Filtros por disponibilidad
   - Paginación completa
 
 ---
@@ -108,18 +121,29 @@ integradora-isoft/
 ├── ecommerce-front/                  # React + Vite Frontend
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── ProductList.jsx       # Búsqueda, filtros, botones solo admin
+│   │   │   ├── ProductList.jsx       # Cards (usuario) o tabla (admin), filtro por categoría
 │   │   │   ├── ProductDetail.jsx
-│   │   │   ├── CategoryList.jsx      # Solo admin ve esta página
-│   │   │   ├── OrderList.jsx         # Filtros solo admin
-│   │   │   └── Cart.jsx              # Datos usuario precargados
+│   │   │   ├── CategoryList.jsx      # Solo admin, tabla con iconos
+│   │   │   ├── OrderList.jsx         # Filtro de estado (admin), modal de detalle
+│   │   │   ├── Cart.jsx              # Carrito con checkout
+│   │   │   ├── Login.jsx
+│   │   │   └── Register.jsx
 │   │   ├── context/
 │   │   │   ├── AuthContext.jsx       # user.role disponible
 │   │   │   └── CartContext.jsx
 │   │   ├── components/
-│   │   │   └── ProtectedRoute.jsx    # adminOnly prop para rutas admin
+│   │   │   ├── ProtectedRoute.jsx    # adminOnly y nonAdmin props
+│   │   │   ├── DataTable.jsx         # Tabla reutilizable para vistas admin
+│   │   │   ├── Header.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   └── modals/
+│   │   │       ├── ProductFormModal.jsx   # Crear/editar producto con preview de imagen
+│   │   │       ├── CategoryFormModal.jsx  # Crear/editar categoría con selector de icono
+│   │   │       └── MoveProductModal.jsx   # Mover producto entre categorías
+│   │   ├── lib/
+│   │   │   └── schemas.js            # Schemas Zod (login, registro, producto, categoría)
 │   │   ├── services/
-│   │   │   └── api.js                # URLs desde VITE_API_URL
+│   │   │   └── api.js                # Axios con interceptor JWT 401
 │   │   ├── App.jsx                   # Rutas protegidas por rol
 │   │   ├── main.jsx
 │   │   └── index.css
