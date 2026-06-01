@@ -10,6 +10,17 @@ export default defineConfig({
       usePolling: true,
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['lucide-react'],
+          'vendor-http': ['axios', 'zod'],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
