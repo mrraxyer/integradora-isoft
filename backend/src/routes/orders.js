@@ -188,8 +188,26 @@ router.get('/:id', verifyToken, async (req, res) => {
  */
 router.post('/', verifyToken, async (req, res) => {
   try {
+    const { items, ...rest } = req.body;
+
+    if (items && items.length > 0) {
+      const Product = require('../models/Product');
+      for (const item of items) {
+        const product = await Product.findByPk(item.product_id);
+        if (!product) {
+          return res.status(404).json({ error: `Producto ${item.product_id} no encontrado` });
+        }
+        if (product.stock < item.quantity) {
+          return res.status(400).json({
+            error: `Stock insuficiente para "${product.name}". Disponible: ${product.stock}`,
+          });
+        }
+      }
+    }
+
     const orderData = {
-      ...req.body,
+      ...rest,
+      items,
       user_id: req.user.id,
     };
     const order = await Order.create(orderData);

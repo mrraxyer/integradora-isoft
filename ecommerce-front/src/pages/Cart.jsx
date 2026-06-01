@@ -20,11 +20,19 @@ export default function Cart() {
     }
   }, [user])
 
+  const outOfStockItems = items.filter((item) => (item.Product?.stock ?? 0) === 0)
+  const hasOutOfStock = outOfStockItems.length > 0
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (items.length === 0) {
       setMessage({ type: 'error', text: 'El carrito está vacío. Agrega productos antes de continuar.' })
+      return
+    }
+
+    if (hasOutOfStock) {
+      setMessage({ type: 'error', text: 'Hay productos agotados en tu carrito. Elimínalos para continuar.' })
       return
     }
 
@@ -87,10 +95,14 @@ export default function Cart() {
                     {items.map((item) => {
                       const product = item.Product || {}
                       const price = parseFloat(product.price || 0)
+                      const stockEmpty = (product.stock ?? 0) === 0
                       return (
-                        <tr key={item.id}>
+                        <tr key={item.id} style={stockEmpty ? { opacity: 0.6 } : {}}>
                           <td>
                             <strong>{product.name}</strong>
+                            {stockEmpty && (
+                              <span className="badge badge-danger" style={{ marginLeft: '0.5rem' }}>Agotado</span>
+                            )}
                           </td>
                           <td>${price.toFixed(2)}</td>
                           <td>
@@ -104,6 +116,7 @@ export default function Cart() {
                               }
                               className="form-input"
                               style={{ width: '4.5rem' }}
+                              disabled={stockEmpty}
                             />
                           </td>
                           <td><strong>${(price * item.quantity).toFixed(2)}</strong></td>
@@ -142,10 +155,16 @@ export default function Cart() {
                 placeholder="Instrucciones especiales para tu pedido..."
               />
             </div>
+            {hasOutOfStock && (
+              <div className="error" style={{ marginBottom: '1rem' }}>
+                <AlertCircle size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />
+                Retira los productos agotados para poder completar tu compra.
+              </div>
+            )}
             <button
               type="submit"
               className="btn btn-success"
-              disabled={loading || items.length === 0}
+              disabled={loading || items.length === 0 || hasOutOfStock}
               style={{ width: '100%', padding: '0.85rem', fontSize: '1rem' }}
             >
               {loading ? 'Procesando...' : <>
