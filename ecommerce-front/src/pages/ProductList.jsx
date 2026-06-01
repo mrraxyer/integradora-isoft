@@ -76,17 +76,17 @@ export default function ProductList() {
     }
   }
 
-  const handleProductSuccess = () => {
+  const handleProductSuccess = async () => {
     setShowFormModal(false)
     setSelectedProduct(null)
-    loadCategories()
+    await loadCategories()
     loadProducts()
   }
 
-  const handleMoveSuccess = () => {
+  const handleMoveSuccess = async () => {
     setShowMoveModal(false)
     setSelectedProduct(null)
-    loadCategories()
+    await loadCategories()
     loadProducts()
   }
 
