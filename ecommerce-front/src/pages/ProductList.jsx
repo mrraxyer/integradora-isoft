@@ -221,11 +221,17 @@ export default function ProductList() {
       ) : (
         /* Usuario: vista de cards */
         <div className="grid">
-          {products.map((product) => (
+          {products.map((product, index) => (
             <div key={product.id} className="card">
               <div className="card-image">
                 {product.image_url ? (
-                  <img src={product.image_url} alt={product.name} className="card-image-img" />
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="card-image-img"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    fetchpriority={index === 0 ? 'high' : 'auto'}
+                  />
                 ) : (
                   <div className="card-image-icon">
                     <CategoryIcon iconName={product.category?.icon} size={80} />
