@@ -1,4 +1,5 @@
-import { Routes, Route, Suspense, lazy } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
+import { Suspense, lazy } from 'react'
 import './index.css'
 import ProductList from './pages/ProductList'
 import ProtectedRoute from './components/ProtectedRoute'
