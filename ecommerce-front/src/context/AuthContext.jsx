@@ -5,11 +5,32 @@ const AuthContext = createContext(null)
 const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'auth_user'
 
+const ERROR_MESSAGES = {
+  'Invalid credentials.': 'Correo o contraseña incorrectos.',
+  'Email already registered.': 'Este correo ya está registrado.',
+  'Internal server error': 'Error del servidor. Intenta más tarde.',
+  'User not found.': 'Usuario no encontrado.',
+}
+
 function parseApiError(err, fallback) {
-  const detail = err.response?.data?.detail
-  if (!detail) return fallback
-  if (Array.isArray(detail)) return detail.map((d) => d.msg).join('; ')
-  return String(detail)
+  const data = err.response?.data
+  if (!data) return fallback
+
+  if (data.error) {
+    const msg = String(data.error)
+    return ERROR_MESSAGES[msg] ?? msg
+  }
+
+  if (data.detail) {
+    if (Array.isArray(data.detail)) return data.detail.map((d) => d.msg).join('; ')
+    return String(data.detail)
+  }
+
+  if (Array.isArray(data.errors)) {
+    return data.errors.map((e) => e.message || e.msg).filter(Boolean).join('. ')
+  }
+
+  return fallback
 }
 
 export function AuthProvider({ children }) {
